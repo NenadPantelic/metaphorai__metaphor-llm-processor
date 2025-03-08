@@ -38,7 +38,7 @@ public class DocumentIndexingServiceImpl implements DocumentIndexingService {
     }
 
     @Override
-    public void indexFromURL(String sourcePath, String sourceOrigin) {
+    public List<IndexedDocumentChunk> indexFromURL(String sourcePath, String sourceOrigin) {
         log.info("Indexing a document: sourcePath = {}, sourceOrigin = {}", sourcePath, sourceOrigin);
         try {
             var resource = new UrlResource(sourcePath);
@@ -51,10 +51,15 @@ public class DocumentIndexingServiceImpl implements DocumentIndexingService {
             log.info("Successfully indexed {}/{} and stored {} chunks.",
                     indexedDocument.getId(), indexedDocument.getName(), chunks.size()
             );
+            return chunks;
         } catch (MalformedURLException e) {
-            throw new IndexingException(String.format("Malformed URL: %s", sourcePath));
+            String errMessage = String.format("Malformed URL: %s", sourcePath);
+            log.error("Unable to index a document from URL. {}", errMessage, e);
+            throw new IndexingException(errMessage, e);
         } catch (IOException e) {
-            throw new IndexingException(String.format("Unable to access URL %s", sourcePath));
+            String errMessage = String.format("Unable to access URL %s", sourcePath);
+            log.error("Unable to index a document from URL. {}", errMessage, e);
+            throw new IndexingException(errMessage, e);
         }
     }
 
@@ -76,7 +81,7 @@ public class DocumentIndexingServiceImpl implements DocumentIndexingService {
         List<IndexedDocumentChunk> chunks = processedDocuments.stream()
                 .map(document -> IndexedDocumentChunk.builder()
                         .documentId(indexedDocument.getId())
-                        // TODO: check if text or formatted content are more suitable
+                        // TODO: check if text or formatted content is more suitable
                         .text(document.getText())
                         .build()
                 )

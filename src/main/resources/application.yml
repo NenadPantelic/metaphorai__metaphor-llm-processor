@@ -1,1 +1,16 @@
-spring.application.name=metaphor-llm-processor
+spring:
+  application:
+    name: metaphor-llm-processor
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+
+  data:
+    mongodb:
+      authentication-database: admin
+      username: metaphorai-db-user
+      password: metaphorai-db-password
+      database: metaphorai
+      port: 27017
+      host: localhost
