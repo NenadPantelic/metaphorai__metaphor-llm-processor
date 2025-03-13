@@ -5,6 +5,16 @@ spring:
   ai:
     openai:
       api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-4o
+    retry:
+      max-attempts: 10
+      backoff:
+        initial-interval: 2sec
+        multiplier: 5
+        max-interval: 3min
+      on-http-codes: 429, 502, 503
 
   data:
     mongodb:
@@ -14,3 +24,6 @@ spring:
       database: metaphorai
       port: 27017
       host: localhost
+
+  metaphor:
+    system-prompt: #TODO
