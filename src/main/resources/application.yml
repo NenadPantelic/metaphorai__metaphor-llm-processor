@@ -25,5 +25,9 @@ spring:
       port: 27017
       host: localhost
 
-  metaphor:
-    system-prompt: #TODO
+metaphor:
+  system-prompt: #TODO
+
+indexing:
+  max-retry: 3
+

@@ -1,7 +1,8 @@
 package ai.metaphor.metaphor_llm_processor.consumer;
 
 import ai.metaphor.metaphor_llm_processor.dto.indexing.ArticleURL;
-import ai.metaphor.metaphor_llm_processor.indexing.DocumentIndexingService;
+import ai.metaphor.metaphor_llm_processor.indexing.IndexingReport;
+import ai.metaphor.metaphor_llm_processor.indexing.RetryableIndexingExecutor;
 import ai.metaphor.metaphor_llm_processor.model.DocumentIndexingAttempt;
 import ai.metaphor.metaphor_llm_processor.model.DocumentIndexingFailure;
 import ai.metaphor.metaphor_llm_processor.model.OriginType;
@@ -10,18 +11,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
-import java.util.Set;
+import java.util.List;
 
 @Slf4j
 @Component // as of now until RMQ dep is added
 public class DocumentIndexingConsumer {
 
-    private final DocumentIndexingService documentIndexingService;
+    private final RetryableIndexingExecutor retryableIndexingExecutor;
     private final DocumentIndexingFailureRepository documentIndexingFailureRepository;
 
-    public DocumentIndexingConsumer(DocumentIndexingService documentIndexingService,
+    public DocumentIndexingConsumer(RetryableIndexingExecutor retryableIndexingExecutor,
                                     DocumentIndexingFailureRepository documentIndexingFailureRepository) {
-        this.documentIndexingService = documentIndexingService;
+        this.retryableIndexingExecutor = retryableIndexingExecutor;
         this.documentIndexingFailureRepository = documentIndexingFailureRepository;
     }
 
@@ -31,12 +32,10 @@ public class DocumentIndexingConsumer {
         log.info("Indexing an article: path = {}, origin = {}", source, origin);
 
         Instant now = Instant.now();
-        try {
-            documentIndexingService.indexFromURL(source, origin);
-        } catch (Exception e) { // TODO: make it more granular
-            log.error("An indexing of the document from {} failed.", source, e);
-            // TODO: now every indexing attempt should be retried
-            reportDocumentIndexingFailure(source, origin, e.getMessage(), now);
+        IndexingReport indexingReport = retryableIndexingExecutor.tryInitialIndexing(source, origin);
+
+        if (indexingReport.retryableExceptionOccurred()) {
+            reportDocumentIndexingFailure(source, origin, indexingReport.getException().getMessage(), now);
         }
     }
 
@@ -51,7 +50,7 @@ public class DocumentIndexingConsumer {
                     .source(source)
                     .origin(origin)
                     .lastIndexingAttempt(timestamp)
-                    .attempts(Set.of(attempt))
+                    .attempts(List.of(attempt))
                     .build();
             documentIndexingFailure = documentIndexingFailureRepository.save(documentIndexingFailure);
             log.info("Document indexing failure stored: {}", documentIndexingFailure);

@@ -38,26 +38,26 @@ public class DocumentIndexingServiceImpl implements DocumentIndexingService {
     }
 
     @Override
-    public List<IndexedDocumentChunk> indexFromURL(String sourcePath, String sourceOrigin) {
-        log.info("Indexing a document: sourcePath = {}, sourceOrigin = {}", sourcePath, sourceOrigin);
+    public List<IndexedDocumentChunk> indexFromURL(String source, String origin) {
+        log.info("Indexing a document: sourcePath = {}, sourceOrigin = {}", source, origin);
         try {
-            var resource = new UrlResource(sourcePath);
+            var resource = new UrlResource(source);
             if (!resource.exists()) {
-                throw new IndexingException(String.format("Resource %s does not exist", sourcePath));
+                throw new IndexingException(String.format("Resource %s does not exist", source));
             }
 
-            IndexedDocument indexedDocument = createDocument(resource, sourcePath, sourceOrigin);
+            IndexedDocument indexedDocument = createDocument(resource, source, origin);
             List<IndexedDocumentChunk> chunks = sliceDocumentToChunks(indexedDocument, resource);
             log.info("Successfully indexed {}/{} and stored {} chunks.",
                     indexedDocument.getId(), indexedDocument.getName(), chunks.size()
             );
             return chunks;
         } catch (MalformedURLException e) {
-            String errMessage = String.format("Malformed URL: %s", sourcePath);
+            String errMessage = String.format("Malformed URL: %s", source);
             log.error("Unable to index a document from URL. {}", errMessage, e);
             throw new IndexingException(errMessage, e);
         } catch (IOException e) {
-            String errMessage = String.format("Unable to access URL %s", sourcePath);
+            String errMessage = String.format("Unable to access URL %s", source);
             log.error("Unable to index a document from URL. {}", errMessage, e);
             throw new IndexingException(errMessage, e);
         }

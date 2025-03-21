@@ -10,8 +10,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @AllArgsConstructor
 @Builder
@@ -36,7 +36,7 @@ public class DocumentIndexingFailure {
     private Instant lastIndexingAttempt;
 
     @Builder.Default
-    private Set<DocumentIndexingAttempt> attempts = new HashSet<>();
+    private List<DocumentIndexingAttempt> attempts = new ArrayList<>();
 
     @Builder.Default
     private DocumentIndexingFailureStatus status = DocumentIndexingFailureStatus.ELIGIBLE_FOR_RETRY;

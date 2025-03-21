@@ -64,7 +64,7 @@ class MetaphorLLMServiceTest {
 
         Mockito.doReturn(expectedMetaphorReportSerialized)
                 .when(llmClient)
-                .generate(metaphorPromptConfigProperties.systemPrompt, prompt);
+                .generate(metaphorPromptConfigProperties.systemPrompt(), prompt);
 
         MetaphorLLMReport metaphorLLMReport = metaphorLLMService.analyzeMetaphor(documentChunk);
 
@@ -72,6 +72,4 @@ class MetaphorLLMServiceTest {
         Assertions.assertThat(metaphorLLMReport.offset()).isEqualTo(offset);
         Assertions.assertThat(metaphorLLMReport.explanation()).isEqualTo(explanation);
     }
-
-
 }

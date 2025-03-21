@@ -30,7 +30,7 @@ public class MetaphorLLMService {
                                  ObjectMapper objectMapper) {
         this.promptTemplate = promptTemplate;
         this.llmClient = llmClient;
-        this.systemPrompt = metaphorPromptConfigProperties.systemPrompt;
+        this.systemPrompt = metaphorPromptConfigProperties.systemPrompt();
         this.objectMapper = objectMapper;
     }
 

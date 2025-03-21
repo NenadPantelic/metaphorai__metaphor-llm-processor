@@ -14,12 +14,12 @@ import java.time.Instant;
 public class DocumentIndexingFailureRetryProcessor {
 
     private final DocumentIndexingFailureRepository indexingFailureRepository;
-    private final DocumentIndexingService documentIndexingService;
+    private final RetryableIndexingExecutor retryableIndexingExecutor;
 
     public DocumentIndexingFailureRetryProcessor(DocumentIndexingFailureRepository indexingFailureRepository,
-                                                 DocumentIndexingService documentIndexingService) {
+                                                 RetryableIndexingExecutor retryableIndexingExecutor) {
         this.indexingFailureRepository = indexingFailureRepository;
-        this.documentIndexingService = documentIndexingService;
+        this.retryableIndexingExecutor = retryableIndexingExecutor;
     }
 
     /**
@@ -40,34 +40,30 @@ public class DocumentIndexingFailureRetryProcessor {
         tryIndexingDocument(failureToProcess);
     }
 
-    // TODO: isolate the common code to a separate component
     private void tryIndexingDocument(DocumentIndexingFailure documentIndexingFailure) {
         String source = documentIndexingFailure.getSource();
         String origin = documentIndexingFailure.getOrigin();
 
-        var attemptsSoFar = documentIndexingFailure.getAttempts().size();
+        var attemptsSoFar = documentIndexingFailure.getAttempts() == null ?
+                0 : documentIndexingFailure.getAttempts().size();
         log.info("Try indexing an article[path = {}, origin = {}] which indexing previously failed {} time(s)",
-                source, origin, attemptsSoFar
+                source, origin, attemptsSoFar + 1 // +1 for the initial one
         );
 
         Instant now = Instant.now();
-        try {
-            documentIndexingService.indexFromURL(source, origin);
-            log.info("Document indexing [path = {}, origin = {}] has passed with {}", source, origin, attemptsSoFar + 1);
-            documentIndexingFailure.setStatus(DocumentIndexingFailureStatus.INDEXING_PASSED);
-        } catch (Exception e) {
-            log.error("An indexing of the document from {} failed.", source, e);
+        IndexingReport indexingReport = retryableIndexingExecutor.tryIndexing(source, origin, attemptsSoFar);
 
-            var documentIndexingAttempt = new DocumentIndexingAttempt(e.getMessage(), now);
+        if (indexingReport.passed()) {
+            documentIndexingFailure.setStatus(DocumentIndexingFailureStatus.INDEXING_PASSED);
+        } else {
+            var documentIndexingAttempt = new DocumentIndexingAttempt(indexingReport.getException().getMessage(), now);
             documentIndexingFailure.addIndexingAttempt(documentIndexingAttempt);
 
-            // TODO: make it reading from config
-            if (documentIndexingFailure.getAttempts().size() >= 3) {
+            if (!indexingReport.retryableExceptionOccurred()) {
                 documentIndexingFailure.setStatus(DocumentIndexingFailureStatus.ALL_ATTEMPTS_FAILED);
             }
-        } finally {
-            // TODO: check
-            indexingFailureRepository.save(documentIndexingFailure);
         }
+
+        indexingFailureRepository.save(documentIndexingFailure);
     }
 }
