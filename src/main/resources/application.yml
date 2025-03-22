@@ -30,4 +30,5 @@ metaphor:
 
 indexing:
   max-retry: 3
+  retry-interval-in-millis: 30000
 

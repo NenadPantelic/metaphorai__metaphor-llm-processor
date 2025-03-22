@@ -5,6 +5,7 @@ import ai.metaphor.metaphor_llm_processor.model.DocumentIndexingFailure;
 import ai.metaphor.metaphor_llm_processor.model.DocumentIndexingFailureStatus;
 import ai.metaphor.metaphor_llm_processor.repository.DocumentIndexingFailureRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -26,7 +27,7 @@ public class DocumentIndexingFailureRetryProcessor {
      * Process the document indexing failure.
      * It tries finding a failure eligible for retry and takes another shot.
      */
-    // TODO: add cron expression
+    @Scheduled(fixedRateString = "#{@indexConfigProperties.retryIntervalInMillis}" )
     public void process() {
         log.info("Try finding a document indexing failure eligible for retry...");
         var failureToProcessOptional = indexingFailureRepository.findOldestAttemptedFailureEligibleForRetry();
@@ -64,6 +65,7 @@ public class DocumentIndexingFailureRetryProcessor {
             }
         }
 
+        documentIndexingFailure.setLastIndexingAttempt(now);
         indexingFailureRepository.save(documentIndexingFailure);
     }
 }

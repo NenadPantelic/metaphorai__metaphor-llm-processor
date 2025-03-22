@@ -24,6 +24,6 @@ public class IndexingReport {
     }
 
     public boolean retryableExceptionOccurred() {
-        return exception != null && retryPossible;
+        return hasException() && retryPossible;
     }
 }
