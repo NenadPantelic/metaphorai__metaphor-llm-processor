@@ -10,7 +10,7 @@ public interface DocumentIndexingFailureRepository extends MongoRepository<Docum
 
     @Aggregation(pipeline = {
             "{$match: { 'status': 'ELIGIBLE_FOR_RETRY'}}",
-            "{$sort: {'lastIndexingAttempt': -1}}",
+            "{$sort: {'lastIndexingAttempt': 1}}",
             "{$limit: 1}"
     })
     Optional<DocumentIndexingFailure> findOldestAttemptedFailureEligibleForRetry();

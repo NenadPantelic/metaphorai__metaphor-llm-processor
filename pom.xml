@@ -35,6 +35,7 @@
         <dep.assertj.version>3.27.0</dep.assertj.version>
         <dep.mockito.version>5.15.2</dep.mockito.version>
         <dep.lombok.version>1.18.22</dep.lombok.version>
+        <dep.testcontainers.version>1.20.0</dep.testcontainers.version>
     </properties>
     <dependencies>
         <dependency>
@@ -81,6 +82,24 @@
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <version>${dep.assertj.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <version>${dep.testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${dep.testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mongodb</artifactId>
+            <version>${dep.testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

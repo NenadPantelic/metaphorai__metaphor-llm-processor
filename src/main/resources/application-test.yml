@@ -18,19 +18,8 @@ spring:
 
   data:
     mongodb:
-      authentication-database: admin
-      username: metaphorai-db-user
-      password: metaphorai-db-password
-      database: metaphorai
       port: 27017
       host: localhost
-      config:
-        enabled: true
-        write:
-          writeConcern:
-            isMajority: true
-          timeout:
-            milliseconds: 100000
 
 metaphor:
   system-prompt: #TODO

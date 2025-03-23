@@ -27,7 +27,7 @@ public class DocumentIndexingFailureRetryProcessor {
      * Process the document indexing failure.
      * It tries finding a failure eligible for retry and takes another shot.
      */
-    @Scheduled(fixedRateString = "#{@indexConfigProperties.retryIntervalInMillis}" )
+//    @Scheduled(fixedRateString = "#{@indexingConfigProperties.retryIntervalInMillis}" )
     public void process() {
         log.info("Try finding a document indexing failure eligible for retry...");
         var failureToProcessOptional = indexingFailureRepository.findOldestAttemptedFailureEligibleForRetry();

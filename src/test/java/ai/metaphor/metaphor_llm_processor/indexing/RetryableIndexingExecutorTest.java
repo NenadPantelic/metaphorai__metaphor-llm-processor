@@ -16,7 +16,7 @@ import java.util.List;
 class RetryableIndexingExecutorTest {
 
     private final DocumentIndexingService documentIndexingService = Mockito.mock(DocumentIndexingService.class);
-    private final IndexingConfigProperties indexingConfigProperties = new IndexingConfigProperties(3);
+    private final IndexingConfigProperties indexingConfigProperties = new IndexingConfigProperties(3, 30);
 
     private final RetryableIndexingExecutor retryableIndexingExecutor = new RetryableIndexingExecutor(
             documentIndexingService, indexingConfigProperties
