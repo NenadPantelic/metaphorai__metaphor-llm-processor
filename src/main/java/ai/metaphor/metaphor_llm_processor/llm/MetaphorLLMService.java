@@ -6,16 +6,22 @@ import ai.metaphor.metaphor_llm_processor.exception.LLMException;
 import ai.metaphor.metaphor_llm_processor.llm.client.LLMClient;
 import ai.metaphor.metaphor_llm_processor.model.IndexedDocumentChunk;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 
 @Slf4j
 @Service
 public class MetaphorLLMService {
+
+
+    private static final TypeReference<List<MetaphorLLMReport>> METAPHOR_LLM_REPORT_LIST = new TypeReference<>() {
+    };
 
     static final String KEY_QUESTION = "question";
 
@@ -40,7 +46,7 @@ public class MetaphorLLMService {
      * @param documentChunk an indexed documentChunk being analyzed
      * @return {@link MetaphorLLMReport}
      */
-    public MetaphorLLMReport analyzeMetaphor(IndexedDocumentChunk documentChunk) {
+    public List<MetaphorLLMReport> analyzeMetaphor(IndexedDocumentChunk documentChunk) {
         log.info("Analyze metaphor in chunk: {}", documentChunk);
         String prompt = preparePromptTemplate(documentChunk.getText());
         String response = llmClient.generate(systemPrompt, prompt);
@@ -53,9 +59,9 @@ public class MetaphorLLMService {
         return promptTemplate.render(templateMap);
     }
 
-    private MetaphorLLMReport deserialize(String content) {
+    private List<MetaphorLLMReport> deserialize(String content) {
         try {
-            return objectMapper.readValue(content, MetaphorLLMReport.class);
+            return objectMapper.readValue(content, METAPHOR_LLM_REPORT_LIST);
         } catch (JsonProcessingException e) {
             throw new LLMException(
                     String.format("Unable to deserialize the content returned by LLM to MetaphorLLMReport type. " +

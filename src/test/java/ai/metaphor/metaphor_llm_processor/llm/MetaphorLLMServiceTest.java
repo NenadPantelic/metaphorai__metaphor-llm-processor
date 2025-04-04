@@ -66,8 +66,10 @@ class MetaphorLLMServiceTest {
                 .when(llmClient)
                 .generate(metaphorPromptConfigProperties.systemPrompt(), prompt);
 
-        MetaphorLLMReport metaphorLLMReport = metaphorLLMService.analyzeMetaphor(documentChunk);
+        var metaphorLLMReports = metaphorLLMService.analyzeMetaphor(documentChunk);
+        Assertions.assertThat(metaphorLLMReports.size()).isEqualTo(1);
 
+        var metaphorLLMReport = metaphorLLMReports.get(0);
         Assertions.assertThat(metaphorLLMReport.phrase()).isEqualTo(phrase);
         Assertions.assertThat(metaphorLLMReport.offset()).isEqualTo(offset);
         Assertions.assertThat(metaphorLLMReport.explanation()).isEqualTo(explanation);

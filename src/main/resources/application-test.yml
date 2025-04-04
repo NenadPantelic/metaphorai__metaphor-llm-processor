@@ -28,3 +28,7 @@ indexing:
   max-retry: 3
   retry-interval-in-millis: 30000
 
+processing:
+  max-retry: 3
+  interval-in-millis: 60000 # 1 minute
+

@@ -1,7 +1,24 @@
 package ai.metaphor.metaphor_llm_processor.repository;
 
 import ai.metaphor.metaphor_llm_processor.model.IndexedDocumentChunk;
+import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
+
+import java.util.Optional;
 
 public interface IndexedDocumentChunkRepository extends MongoRepository<IndexedDocumentChunk, String> {
+
+    @Aggregation(pipeline = {
+            "{$match: { 'status': {$in: ['PENDING', 'NEXT_ATTEMPT_NEEDED']}}}",
+            "{$sort: {'lastProcessingAttemptedAt': 1}}",
+            "{$limit: 1}"
+    })
+    Optional<IndexedDocumentChunk> findOldestAttemptedChunkEligibleForProcessing();
+
+
+    int countByDocumentId(String documentId);
+
+    @Query(value = "{'status': {$in: ['PROCESSED', 'FAILED_TO_PROCESS']}}", count = true)
+    int countProcessedByDocumentId(String documentId);
 }

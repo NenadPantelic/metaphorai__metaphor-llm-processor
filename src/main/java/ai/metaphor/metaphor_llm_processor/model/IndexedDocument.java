@@ -52,4 +52,8 @@ public class IndexedDocument {
 
     @LastModifiedDate
     private Instant updatedAt;
+
+    public void addMetaphors(Set<Metaphor> metaphors) {
+        this.metaphors.addAll(metaphors);
+    }
 }

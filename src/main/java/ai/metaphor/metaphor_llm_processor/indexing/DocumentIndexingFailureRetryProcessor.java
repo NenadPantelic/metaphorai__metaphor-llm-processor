@@ -23,24 +23,6 @@ public class DocumentIndexingFailureRetryProcessor {
         this.retryableIndexingExecutor = retryableIndexingExecutor;
     }
 
-    /**
-     * Process the document indexing failure.
-     * It tries finding a failure eligible for retry and takes another shot.
-     */
-//    @Scheduled(fixedRateString = "#{@indexingConfigProperties.retryIntervalInMillis}" )
-    public void process() {
-        log.info("Try finding a document indexing failure eligible for retry...");
-        var failureToProcessOptional = indexingFailureRepository.findOldestAttemptedFailureEligibleForRetry();
-
-        if (failureToProcessOptional.isEmpty()) {
-            log.info("No document indexing failure eligible for retry has been found");
-            return;
-        }
-
-        var failureToProcess = failureToProcessOptional.get();
-        tryIndexingDocument(failureToProcess);
-    }
-
     private void tryIndexingDocument(DocumentIndexingFailure documentIndexingFailure) {
         String source = documentIndexingFailure.getSource();
         String origin = documentIndexingFailure.getOrigin();
@@ -67,5 +49,23 @@ public class DocumentIndexingFailureRetryProcessor {
 
         documentIndexingFailure.setLastIndexingAttempt(now);
         indexingFailureRepository.save(documentIndexingFailure);
+    }
+
+    /**
+     * Process the document indexing failure.
+     * It tries finding a failure eligible for retry and takes another shot.
+     */
+    @Scheduled(fixedDelayString = "#{@'indexing-ai.metaphor.metaphor_llm_processor.configproperties.IndexingConfigProperties'.retryIntervalInMillis}")
+    public void process() {
+        log.info("Try finding a document indexing failure eligible for retry...");
+        var failureToProcessOptional = indexingFailureRepository.findOldestAttemptedFailureEligibleForRetry();
+
+        if (failureToProcessOptional.isEmpty()) {
+            log.info("No document indexing failure eligible for retry has been found");
+            return;
+        }
+
+        var failureToProcess = failureToProcessOptional.get();
+        tryIndexingDocument(failureToProcess);
     }
 }

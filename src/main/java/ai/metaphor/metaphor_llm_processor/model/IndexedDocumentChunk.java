@@ -11,6 +11,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
@@ -28,10 +29,15 @@ public class IndexedDocumentChunk {
     private String text;
     @Builder.Default
     private DocumentChunkStatus status = DocumentChunkStatus.PENDING;
-    private List<ChunkIndexingAttempt> attempts;
+    @Builder.Default
+    private List<ChunkProcessingAttempt> attempts = new ArrayList<>();
     @CreatedDate
     private Instant createdAt;
     @LastModifiedDate
     private Instant updatedAt;
     private Instant lastProcessingAttemptedAt;
+
+    public void addAttempt(ChunkProcessingAttempt chunkProcessingAttempt) {
+        this.attempts.add(chunkProcessingAttempt);
+    }
 }

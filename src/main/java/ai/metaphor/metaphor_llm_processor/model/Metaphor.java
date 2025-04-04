@@ -3,6 +3,7 @@ package ai.metaphor.metaphor_llm_processor.model;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.data.annotation.CreatedDate;
@@ -12,6 +13,7 @@ import java.time.Instant;
 
 @AllArgsConstructor
 @Data
+@Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class Metaphor {
 
