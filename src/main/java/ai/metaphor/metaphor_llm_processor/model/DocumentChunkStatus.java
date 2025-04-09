@@ -4,7 +4,7 @@ public enum DocumentChunkStatus {
 
     PENDING,
     PROCESSING,
-    PROCESSED,
+    SUCCESSFULLY_PROCESSED,
     NEXT_ATTEMPT_NEEDED,
     FAILED_TO_PROCESS
 }

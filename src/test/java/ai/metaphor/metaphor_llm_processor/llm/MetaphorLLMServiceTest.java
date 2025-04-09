@@ -50,11 +50,11 @@ class MetaphorLLMServiceTest {
                 "or disorganized, much like a zoo filled with animals. It conveys an image of wild activity and disorder in" +
                 "the classroom, though it's not literally a zoo.";
         String expectedMetaphorReportSerialized = String.format("""
-                {
+                [{
                 "phrase":"%s",\r
                 "offset":%d,\r
                 "explanation":"%s"
-                }
+                }]
                 """, phrase, offset, explanation);
 
         String prompt = "Test prompt";

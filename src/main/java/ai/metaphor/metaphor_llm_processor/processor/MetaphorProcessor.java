@@ -33,36 +33,34 @@ public class MetaphorProcessor {
         this.maxProcessingRetries = processingConfigProperties.maxRetry();
     }
 
-
     @Scheduled(fixedDelayString = "#{@'processing-ai.metaphor.metaphor_llm_processor.configproperties.ProcessingConfigProperties'.intervalInMillis}")
     public void process() {
         log.info("Processing the next chunk...");
 
-        Optional<IndexedDocumentChunk> chunkOptional = chunkRepository.findOldestAttemptedChunkEligibleForProcessing();
+        Optional<IndexedDocument> documentOptional = documentRepository.findOldestEligibleDocumentForProcessing();
+        if (documentOptional.isEmpty()) {
+            log.error("There is no any document that is ready for processing...");
+            return;
+        }
+
+        var document = documentOptional.get();
+        document.setStatus(DocumentStatus.PROCESSING);
+        documentRepository.save(document);
+
+        Optional<IndexedDocumentChunk> chunkOptional = chunkRepository.findFirstChunkEligibleForProcessing(document.getId());
         if (chunkOptional.isEmpty()) {
             log.info("There is no chunk waiting to be processed...");
+            document.setStatus(DocumentStatus.INCOMPLETE); // should not happen
+            documentRepository.save(document);
             return;
         }
 
         IndexedDocumentChunk chunkToProcess = chunkOptional.get();
         String chunkId = chunkToProcess.getId();
         String chunkDocumentId = chunkToProcess.getDocumentId();
-
-        var documentOptional = documentRepository.findById(chunkDocumentId);
-        if (documentOptional.isEmpty()) {
-            // should not happen
-            log.error("Got in inconsistent state, the documentOptional[id = {}] was deleted, but its chunks are still there...",
-                    chunkDocumentId);
-            chunkToProcess.setStatus(DocumentChunkStatus.FAILED_TO_PROCESS);
-            chunkRepository.save(chunkToProcess);
-            return;
-        }
-        var document = documentOptional.get();
-
         log.info("Chunk[id = {}, documentId = {}] is about to be processed.", chunkId, chunkDocumentId);
         var now = Instant.now();
 
-        // TODO: document status should be updated in any case - PROCESSING, INCOMPLETE, COMPLETE
         try {
             chunkToProcess.setStatus(DocumentChunkStatus.PROCESSING);
             chunkToProcess = chunkRepository.save(chunkToProcess);
@@ -74,7 +72,7 @@ public class MetaphorProcessor {
                     .collect(Collectors.toSet());
             document.addMetaphors(metaphors);
 
-            chunkToProcess.setStatus(DocumentChunkStatus.PROCESSED);
+            chunkToProcess.setStatus(DocumentChunkStatus.SUCCESSFULLY_PROCESSED);
             chunkToProcess.setLastProcessingAttemptedAt(now);
             chunkToProcess.addAttempt(new ChunkProcessingAttempt(now, null));
 
@@ -100,21 +98,24 @@ public class MetaphorProcessor {
     }
 
     private void updateDocumentIfAllChunksProcessed(String chunkId, String chunkDocumentId, IndexedDocument document) {
-        if (allDocumentChunksAreProcessed(chunkId, chunkDocumentId)) {
-            log.info("All chunks of a document[id = {}] are processed.", chunkDocumentId);
-            document.setStatus(DocumentStatus.DONE);
-            documentRepository.save(document);
-        }
-    }
-
-    private boolean allDocumentChunksAreProcessed(String chunkId, String chunkDocumentId) {
         log.info("Checking if chunkId '{}' was the last chunk of document[id = {}]", chunkId, chunkDocumentId);
         int allChunksCount = chunkRepository.countByDocumentId(chunkDocumentId);
-        int processedChunksCount = chunkRepository.countProcessedByDocumentId(chunkDocumentId);
+        // TODO: can be one aggregating query
+        int successfullyProcessedCount = chunkRepository.countSuccessfullyProcessedByDocumentId(chunkDocumentId);
+        int processingFailuresCount = chunkRepository.countProcessingFailuresByDocumentId(chunkDocumentId);
 
-        log.info("Document[id = {}] chunk processing completeness report: {}/{}", chunkDocumentId,
-                processedChunksCount, allChunksCount);
-        return processedChunksCount == allChunksCount;
+        log.info("Document[id = {}] chunk processing completeness report: processed with success = {}, " +
+                        "processed with failure = {}, total = {}", chunkDocumentId, successfullyProcessedCount,
+                processingFailuresCount, allChunksCount);
+
+        if (successfullyProcessedCount + processingFailuresCount == allChunksCount) {
+            log.info("All chunks of a document[id = {}] are processed.", chunkDocumentId);
+            DocumentStatus documentStatus = processingFailuresCount == 0 ?
+                    DocumentStatus.DONE :
+                    DocumentStatus.INCOMPLETE;
+            document.setStatus(documentStatus);
+            documentRepository.save(document);
+        }
     }
 
     Metaphor convertLLMReportToMetaphor(String chunkId, MetaphorLLMReport report) {

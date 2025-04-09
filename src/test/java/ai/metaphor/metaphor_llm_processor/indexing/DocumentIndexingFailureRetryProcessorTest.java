@@ -6,6 +6,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -55,28 +56,16 @@ class DocumentIndexingFailureRetryProcessorTest {
                 .findOldestAttemptedFailureEligibleForRetry();
 
         var chunk = new IndexedDocumentChunk(
-                "test-chunk-id", "test-document-id", "text", DocumentChunkStatus.PENDING,
+                "test-chunk-id", "test-document-id", "text", DocumentChunkStatus.PENDING, 1,
                 null, null, null, null
         );
         var indexingReport = new IndexingReport(List.of(chunk), null, false);
         Mockito.doReturn(indexingReport).when(retryableIndexingExecutor).tryIndexing(source, origin, 1);
 
-        ArgumentCaptor<DocumentIndexingFailure> argumentCaptor = ArgumentCaptor.forClass(
-                DocumentIndexingFailure.class
-        );
         documentIndexingFailureRetryProcessor.process();
-
         Mockito.verify(
                 indexingFailureRepository, Mockito.times(1)
-        ).save(argumentCaptor.capture());
-
-        var actualDocumentIndexingFailure = argumentCaptor.getValue();
-
-        Assertions.assertThat(actualDocumentIndexingFailure.getId()).isEqualTo(id);
-        Assertions.assertThat(actualDocumentIndexingFailure.getSource()).isEqualTo(source);
-        Assertions.assertThat(actualDocumentIndexingFailure.getOrigin()).isEqualTo(origin);
-        Assertions.assertThat(actualDocumentIndexingFailure.getAttempts()).isEqualTo(attempts);
-        Assertions.assertThat(actualDocumentIndexingFailure.getStatus()).isEqualTo(DocumentIndexingFailureStatus.INDEXING_PASSED);
+        ).deleteById(ArgumentMatchers.eq(id));
     }
 
     @Test

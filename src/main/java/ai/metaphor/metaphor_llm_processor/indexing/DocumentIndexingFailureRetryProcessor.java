@@ -37,18 +37,19 @@ public class DocumentIndexingFailureRetryProcessor {
         IndexingReport indexingReport = retryableIndexingExecutor.tryIndexing(source, origin, attemptsSoFar);
 
         if (indexingReport.passed()) {
-            documentIndexingFailure.setStatus(DocumentIndexingFailureStatus.INDEXING_PASSED);
+            // all good, remove the failure record
+            indexingFailureRepository.deleteById(documentIndexingFailure.getId());
         } else {
             var documentIndexingAttempt = new DocumentIndexingAttempt(indexingReport.getException().getMessage(), now);
             documentIndexingFailure.addIndexingAttempt(documentIndexingAttempt);
+            documentIndexingFailure.setLastIndexingAttempt(now);
 
             if (!indexingReport.retryableExceptionOccurred()) {
                 documentIndexingFailure.setStatus(DocumentIndexingFailureStatus.ALL_ATTEMPTS_FAILED);
             }
-        }
 
-        documentIndexingFailure.setLastIndexingAttempt(now);
-        indexingFailureRepository.save(documentIndexingFailure);
+            indexingFailureRepository.save(documentIndexingFailure);
+        }
     }
 
     /**

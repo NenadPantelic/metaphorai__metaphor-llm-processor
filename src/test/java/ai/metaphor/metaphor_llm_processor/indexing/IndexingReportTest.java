@@ -23,7 +23,7 @@ class IndexingReportTest {
     public void testPassedWhenExceptionIsNotNull() {
         var now = Instant.now();
         var chunk = new IndexedDocumentChunk(
-                "test-id-1", "test-document-id-1", "Test 1234567890", DocumentChunkStatus.PENDING,
+                "test-id-1", "test-document-id-1", "Test 1234567890", DocumentChunkStatus.PENDING, 1,
                 null, now, now, now
         );
 
@@ -37,7 +37,7 @@ class IndexingReportTest {
     public void testRetryableExceptionOccurredWhenExceptionIsNull() {
         var now = Instant.now();
         var chunk = new IndexedDocumentChunk(
-                "test-id-1", "test-document-id-1", "Test 1234567890", DocumentChunkStatus.PENDING,
+                "test-id-1", "test-document-id-1", "Test 1234567890", DocumentChunkStatus.PENDING, 1,
                 null, now, now, now
         );
 
@@ -50,7 +50,7 @@ class IndexingReportTest {
     public void testRetryableExceptionOccurredWhenNotRetryable() {
         var now = Instant.now();
         var chunk = new IndexedDocumentChunk(
-                "test-id-1", "test-document-id-1", "Test 1234567890", DocumentChunkStatus.PENDING,
+                "test-id-1", "test-document-id-1", "Test 1234567890", DocumentChunkStatus.PENDING, 1,
                 null, now, now, now
         );
 
@@ -65,7 +65,7 @@ class IndexingReportTest {
     public void testRetryableExceptionOccurredWhenRetryable() {
         var now = Instant.now();
         var chunk = new IndexedDocumentChunk(
-                "test-id-1", "test-document-id-1", "Test 1234567890", DocumentChunkStatus.PENDING,
+                "test-id-1", "test-document-id-1", "Test 1234567890", DocumentChunkStatus.PENDING, 1,
                 null, now, now, now
         );
 

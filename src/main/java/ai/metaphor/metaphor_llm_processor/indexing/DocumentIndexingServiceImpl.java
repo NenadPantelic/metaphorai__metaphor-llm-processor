@@ -1,6 +1,7 @@
 package ai.metaphor.metaphor_llm_processor.indexing;
 
 import ai.metaphor.metaphor_llm_processor.exception.IndexingException;
+import ai.metaphor.metaphor_llm_processor.model.DocumentStatus;
 import ai.metaphor.metaphor_llm_processor.model.IndexedDocument;
 import ai.metaphor.metaphor_llm_processor.model.IndexedDocumentChunk;
 import ai.metaphor.metaphor_llm_processor.model.OriginType;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -51,6 +53,9 @@ public class DocumentIndexingServiceImpl implements DocumentIndexingService {
             log.info("Successfully indexed {}/{} and stored {} chunks.",
                     indexedDocument.getId(), indexedDocument.getName(), chunks.size()
             );
+            // the document is now ready for processing
+            indexedDocument.setStatus(DocumentStatus.PENDING);
+            documentRepository.save(indexedDocument);
             return chunks;
         } catch (MalformedURLException e) {
             String errMessage = String.format("Malformed URL: %s", source);
@@ -78,14 +83,17 @@ public class DocumentIndexingServiceImpl implements DocumentIndexingService {
 
     private List<IndexedDocumentChunk> sliceDocumentToChunks(IndexedDocument indexedDocument, Resource resource) {
         List<Document> processedDocuments = processDocument(resource);
-        List<IndexedDocumentChunk> chunks = processedDocuments.stream()
-                .map(document -> IndexedDocumentChunk.builder()
-                        .documentId(indexedDocument.getId())
-                        // TODO: check if text or formatted content is more suitable
-                        .text(document.getText())
-                        .build()
-                )
-                .toList();
+        int indexOrder = 1;
+        List<IndexedDocumentChunk> chunks = new ArrayList<>();
+        for (Document document : processedDocuments) {
+            var chunk = IndexedDocumentChunk.builder()
+                    .documentId(indexedDocument.getId())
+                    // TODO: check if text or formatted content is more suitable
+                    .text(document.getText())
+                    .order(indexOrder++)
+                    .build();
+            chunks.add(chunk);
+        }
         return chunkRepository.saveAll(chunks);
     }
 

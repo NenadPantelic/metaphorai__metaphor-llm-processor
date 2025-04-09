@@ -10,15 +10,17 @@ import java.util.Optional;
 public interface IndexedDocumentChunkRepository extends MongoRepository<IndexedDocumentChunk, String> {
 
     @Aggregation(pipeline = {
-            "{$match: { 'status': {$in: ['PENDING', 'NEXT_ATTEMPT_NEEDED']}}}",
-            "{$sort: {'lastProcessingAttemptedAt': 1}}",
+            "{$match: { 'documentId': ?1, 'status': {$in: ['PENDING', 'NEXT_ATTEMPT_NEEDED']}}}",
+            "{$sort: {'order': 1}}",
             "{$limit: 1}"
     })
-    Optional<IndexedDocumentChunk> findOldestAttemptedChunkEligibleForProcessing();
-
+    Optional<IndexedDocumentChunk> findFirstChunkEligibleForProcessing(String documentId);
 
     int countByDocumentId(String documentId);
 
-    @Query(value = "{'status': {$in: ['PROCESSED', 'FAILED_TO_PROCESS']}}", count = true)
-    int countProcessedByDocumentId(String documentId);
+    @Query(value = "{'status': 'SUCCESSFULLY_PROCESSED'}", count = true)
+    int countSuccessfullyProcessedByDocumentId(String documentId);
+
+    @Query(value = "{'status': 'FAILED_TO_PROCESS'}", count = true)
+    int countProcessingFailuresByDocumentId(String documentId);
 }

@@ -1,6 +1,8 @@
 package ai.metaphor.metaphor_llm_processor.model;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,6 +31,10 @@ public class IndexedDocumentChunk {
     private String text;
     @Builder.Default
     private DocumentChunkStatus status = DocumentChunkStatus.PENDING;
+    @NotNull
+    @Min(1)
+    @Builder.Default
+    private int order = 1;
     @Builder.Default
     private List<ChunkProcessingAttempt> attempts = new ArrayList<>();
     @CreatedDate

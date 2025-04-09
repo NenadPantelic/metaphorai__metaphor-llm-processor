@@ -33,11 +33,11 @@ class DocumentIndexingConsumerTest {
 
         var now = Instant.now();
         var documentChunkOne = new IndexedDocumentChunk(
-                "test-id-1", "test-document-id-1", "Test 1234567890", DocumentChunkStatus.PENDING,
+                "test-id-1", "test-document-id-1", "Test 1234567890", DocumentChunkStatus.PENDING, 1,
                 null, now, now, now
         );
         var documentChunkTwo = new IndexedDocumentChunk(
-                "test-id-2", "test-document-id-2", "Test 0987654321", DocumentChunkStatus.PENDING,
+                "test-id-2", "test-document-id-2", "Test 0987654321", DocumentChunkStatus.PENDING, 2,
                 null, now, now, now
         );
         List<IndexedDocumentChunk> chunks = List.of(documentChunkOne, documentChunkTwo);

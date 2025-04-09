@@ -2,6 +2,8 @@ package ai.metaphor.metaphor_llm_processor.model;
 
 public enum DocumentStatus {
 
+    // not yet ready, still being indexed
+    NOT_READY,
     // not yet processed, waiting for its turn
     PENDING,
     // being processed at the moment

@@ -32,7 +32,7 @@ class DocumentIndexingFailureRepositoryTest {// extends DatabaseIntegrationSetup
     @Test
     public void whenMultipleFailuresEligibleForRetryPresentShouldReturnTheOldestAttempted() {
         var failureRecords = populateDocumentIndexingFailureCollection(
-                3, 3, 3
+                3, 3
         );
 
         Optional<DocumentIndexingFailure> failureOptional = documentIndexingFailureRepository.findOldestAttemptedFailureEligibleForRetry();
@@ -52,7 +52,7 @@ class DocumentIndexingFailureRepositoryTest {// extends DatabaseIntegrationSetup
     @Test
     public void whenNoFailuresEligibleForRetryPresentShouldReturnAnEmptyOptional() {
         populateDocumentIndexingFailureCollection(
-                0, 2, 2
+                0, 2
         );
 
         Optional<DocumentIndexingFailure> failureOptional = documentIndexingFailureRepository.findOldestAttemptedFailureEligibleForRetry();
@@ -63,24 +63,9 @@ class DocumentIndexingFailureRepositoryTest {// extends DatabaseIntegrationSetup
 
     private Map<DocumentIndexingFailureStatus, List<DocumentIndexingFailure>> populateDocumentIndexingFailureCollection(
             int numOfEligibleForRetryRecords,
-            int numOfAllAttemptsFailedRecords,
-            int numOfIndexingPassedRecords
+            int numOfAllAttemptsFailedRecords
     ) {
         var now = Instant.now();
-
-        // INDEXING_PASSED
-        List<DocumentIndexingFailure> recordsIndexingPassed = new ArrayList<>();
-        for (int i = 0; i < numOfIndexingPassedRecords; i++) {
-            var failureIP = DocumentIndexingFailure.builder()
-                    .source(randomString())
-                    .origin(randomString())
-                    .type(OriginType.URL)
-                    .status(DocumentIndexingFailureStatus.INDEXING_PASSED)
-                    .lastIndexingAttempt(now.plusMillis(i))
-                    .build();
-            recordsIndexingPassed.add(failureIP);
-        }
-        documentIndexingFailureRepository.saveAll(recordsIndexingPassed);
 
         // ELIGIBLE_FOR_RETRY
         List<DocumentIndexingFailure> recordsEligibleForRetry = new ArrayList<>();
@@ -111,7 +96,6 @@ class DocumentIndexingFailureRepositoryTest {// extends DatabaseIntegrationSetup
         documentIndexingFailureRepository.saveAll(recordsAllAttemptsFailed);
 
         return Map.of(
-                DocumentIndexingFailureStatus.INDEXING_PASSED, recordsIndexingPassed,
                 DocumentIndexingFailureStatus.ELIGIBLE_FOR_RETRY, recordsEligibleForRetry,
                 DocumentIndexingFailureStatus.ALL_ATTEMPTS_FAILED, recordsAllAttemptsFailed
         );
