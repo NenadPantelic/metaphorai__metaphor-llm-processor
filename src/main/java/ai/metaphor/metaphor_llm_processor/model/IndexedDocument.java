@@ -56,4 +56,8 @@ public class IndexedDocument {
     public void addMetaphors(Set<Metaphor> metaphors) {
         this.metaphors.addAll(metaphors);
     }
+
+    public void clearAllMetaphors() {
+        metaphors.clear();
+    }
 }

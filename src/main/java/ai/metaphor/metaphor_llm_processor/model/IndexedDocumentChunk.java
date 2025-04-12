@@ -46,4 +46,8 @@ public class IndexedDocumentChunk {
     public void addAttempt(ChunkProcessingAttempt chunkProcessingAttempt) {
         this.attempts.add(chunkProcessingAttempt);
     }
+
+    public void clearAllAttempts() {
+        attempts.clear();
+    }
 }

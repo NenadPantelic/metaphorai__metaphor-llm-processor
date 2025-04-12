@@ -35,8 +35,9 @@ public class MetaphorProcessor {
 
     @Scheduled(fixedDelayString = "#{@'processing-ai.metaphor.metaphor_llm_processor.configproperties.ProcessingConfigProperties'.intervalInMillis}")
     public void process() {
-        log.info("Processing the next chunk...");
+        log.info("Processing the next document/chunk...");
 
+        // NOTE: reprocessing documents is expected to happen after the initial processing
         Optional<IndexedDocument> documentOptional = documentRepository.findOldestEligibleDocumentForProcessing();
         if (documentOptional.isEmpty()) {
             log.error("There is no any document that is ready for processing...");
@@ -44,6 +45,9 @@ public class MetaphorProcessor {
         }
 
         var document = documentOptional.get();
+        log.info("Document[id = {}, status = {}] is chosen. Its next chunk is about to be processed.",
+                document.getId(), document.getStatus()
+        );
         document.setStatus(DocumentStatus.PROCESSING);
         documentRepository.save(document);
 

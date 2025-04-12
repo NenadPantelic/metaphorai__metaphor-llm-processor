@@ -8,6 +8,8 @@ public enum DocumentStatus {
     PENDING,
     // being processed at the moment
     PROCESSING,
+    // waiting reprocessing
+    PENDING_REPROCESSING,
     // processing has been done, but some chunks have not been processed (error)
     INCOMPLETE,
     // completely processed
