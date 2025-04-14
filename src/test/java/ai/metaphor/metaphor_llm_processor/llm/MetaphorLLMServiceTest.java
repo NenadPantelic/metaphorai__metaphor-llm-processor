@@ -1,7 +1,6 @@
 package ai.metaphor.metaphor_llm_processor.llm;
 
 import ai.metaphor.metaphor_llm_processor.configproperties.MetaphorPromptConfigProperties;
-import ai.metaphor.metaphor_llm_processor.dto.metaphor.MetaphorLLMReport;
 import ai.metaphor.metaphor_llm_processor.llm.client.LLMClient;
 import ai.metaphor.metaphor_llm_processor.model.DocumentChunkStatus;
 import ai.metaphor.metaphor_llm_processor.model.IndexedDocumentChunk;
@@ -29,7 +28,7 @@ class MetaphorLLMServiceTest {
 
 
     private final MetaphorLLMService metaphorLLMService = new MetaphorLLMService(
-            promptTemplate, llmClient, metaphorPromptConfigProperties, objectMapper
+            promptTemplate, promptTemplateWithDirective, promptProvider, llmClient, metaphorPromptConfigProperties, objectMapper
     );
 
 
@@ -60,7 +59,7 @@ class MetaphorLLMServiceTest {
         String prompt = "Test prompt";
         Mockito.doReturn(prompt)
                 .when(promptTemplate)
-                .render(Map.of(MetaphorLLMService.KEY_QUESTION, text));
+                .render(Map.of(MetaphorLLMService.KEY_TEXT, text));
 
         Mockito.doReturn(expectedMetaphorReportSerialized)
                 .when(llmClient)

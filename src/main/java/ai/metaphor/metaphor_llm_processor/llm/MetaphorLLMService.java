@@ -9,10 +9,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
 
 @Slf4j
@@ -23,18 +21,16 @@ public class MetaphorLLMService {
     private static final TypeReference<List<MetaphorLLMReport>> METAPHOR_LLM_REPORT_LIST = new TypeReference<>() {
     };
 
-    static final String KEY_QUESTION = "question";
-
-    private final PromptTemplate promptTemplate;
+    private final PromptProvider promptProvider;
     private final LLMClient llmClient;
     private final String systemPrompt;
     private final ObjectMapper objectMapper;
 
-    protected MetaphorLLMService(PromptTemplate promptTemplate,
+    protected MetaphorLLMService(PromptProvider promptProvider,
                                  LLMClient llmClient,
                                  MetaphorPromptConfigProperties metaphorPromptConfigProperties,
                                  ObjectMapper objectMapper) {
-        this.promptTemplate = promptTemplate;
+        this.promptProvider = promptProvider;
         this.llmClient = llmClient;
         this.systemPrompt = metaphorPromptConfigProperties.systemPrompt();
         this.objectMapper = objectMapper;
@@ -48,15 +44,22 @@ public class MetaphorLLMService {
      */
     public List<MetaphorLLMReport> analyzeMetaphor(IndexedDocumentChunk documentChunk) {
         log.info("Analyze metaphor in chunk: {}", documentChunk);
-        String prompt = preparePromptTemplate(documentChunk.getText());
+        String prompt = promptProvider.getPrompt(documentChunk);
         String response = llmClient.generate(systemPrompt, prompt);
         return deserialize(response);
     }
 
-    private String preparePromptTemplate(String originalUserPrompt) {
-        var templateMap = new HashMap<String, Object>();
-        templateMap.put(KEY_QUESTION, originalUserPrompt);
-        return promptTemplate.render(templateMap);
+    /**
+     * Sends a prompt to LLM with an intention to analyze text and find metaphor phrases in it.
+     *
+     * @param documentChunk an indexed documentChunk being analyzed
+     * @return {@link MetaphorLLMReport}
+     */
+    public List<MetaphorLLMReport> analyzeMetaphorWithAdditionalDirective(IndexedDocumentChunk documentChunk) {
+        log.info("Analyze metaphor in chunk: {}", documentChunk);
+        String prompt = promptProvider.getPromptWithDirective(documentChunk);
+        String response = llmClient.generate(systemPrompt, prompt);
+        return deserialize(response);
     }
 
     private List<MetaphorLLMReport> deserialize(String content) {

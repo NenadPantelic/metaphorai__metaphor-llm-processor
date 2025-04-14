@@ -4,6 +4,7 @@ import ai.metaphor.metaphor_llm_processor.configproperties.ProcessingConfigPrope
 import ai.metaphor.metaphor_llm_processor.dto.metaphor.MetaphorLLMReport;
 import ai.metaphor.metaphor_llm_processor.llm.MetaphorLLMService;
 import ai.metaphor.metaphor_llm_processor.model.*;
+import ai.metaphor.metaphor_llm_processor.repository.DocumentReprocessingRequestRepository;
 import ai.metaphor.metaphor_llm_processor.repository.IndexedDocumentChunkRepository;
 import ai.metaphor.metaphor_llm_processor.repository.IndexedDocumentRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -11,24 +12,35 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class MetaphorProcessor {
 
+    private static final Map<DocumentStatus, DocumentStatus> DOCUMENT_STATUS_TRANSITION_MAP = Map.of(
+            DocumentStatus.PENDING, DocumentStatus.PROCESSING,
+            DocumentStatus.PENDING_REPROCESSING, DocumentStatus.REPROCESSING
+    );
+
     private final IndexedDocumentRepository documentRepository;
     private final IndexedDocumentChunkRepository chunkRepository;
+    private final DocumentReprocessingRequestRepository documentReprocessingRequestRepository;
     private final MetaphorLLMService metaphorLLMService;
     private final int maxProcessingRetries;
 
     public MetaphorProcessor(IndexedDocumentRepository documentRepository,
                              IndexedDocumentChunkRepository chunkRepository,
+                             DocumentReprocessingRequestRepository documentReprocessingRequestRepository,
                              MetaphorLLMService metaphorLLMService,
                              ProcessingConfigProperties processingConfigProperties) {
         this.documentRepository = documentRepository;
         this.chunkRepository = chunkRepository;
+        this.documentReprocessingRequestRepository = documentReprocessingRequestRepository;
         this.metaphorLLMService = metaphorLLMService;
         this.maxProcessingRetries = processingConfigProperties.maxRetry();
     }
@@ -48,7 +60,7 @@ public class MetaphorProcessor {
         log.info("Document[id = {}, status = {}] is chosen. Its next chunk is about to be processed.",
                 document.getId(), document.getStatus()
         );
-        document.setStatus(DocumentStatus.PROCESSING);
+        updateDocumentStatusIfNeeded(document);
         documentRepository.save(document);
 
         Optional<IndexedDocumentChunk> chunkOptional = chunkRepository.findFirstChunkEligibleForProcessing(document.getId());
@@ -69,11 +81,7 @@ public class MetaphorProcessor {
             chunkToProcess.setStatus(DocumentChunkStatus.PROCESSING);
             chunkToProcess = chunkRepository.save(chunkToProcess);
 
-            var metaphorLLMReports = metaphorLLMService.analyzeMetaphor(chunkToProcess);
-            var metaphors = metaphorLLMReports
-                    .stream()
-                    .map(report -> convertLLMReportToMetaphor(chunkId, report))
-                    .collect(Collectors.toSet());
+            var metaphors = analyzeMetaphors(document, chunkToProcess);
             document.addMetaphors(metaphors);
 
             chunkToProcess.setStatus(DocumentChunkStatus.SUCCESSFULLY_PROCESSED);
@@ -101,6 +109,41 @@ public class MetaphorProcessor {
         }
     }
 
+    private Set<Metaphor> analyzeMetaphors(IndexedDocument document, IndexedDocumentChunk chunk) {
+        List<MetaphorLLMReport> metaphorLLMReports;
+
+        if (document.getStatus() == DocumentStatus.PROCESSING) {
+            metaphorLLMReports = metaphorLLMService.analyzeMetaphor(chunk);
+        } else { // PENDING_PROCESSING
+            metaphorLLMReports = metaphorLLMService.analyzeMetaphorWithAdditionalDirective(chunk);
+        }
+
+        return metaphorLLMReports
+                .stream()
+                .map(report -> convertLLMReportToMetaphor(chunk.getId(), report))
+                .collect(Collectors.toSet());
+    }
+
+    private Metaphor convertLLMReportToMetaphor(String chunkId, MetaphorLLMReport report) {
+        if (report == null) {
+            return null;
+        }
+
+        return Metaphor.builder()
+                .phrase(report.phrase())
+                .offset(report.offset())
+                .explanation(report.explanation())
+                .chunkId(chunkId)
+                .build();
+    }
+
+    private void updateDocumentStatusIfNeeded(IndexedDocument document) {
+        var newStatus = DOCUMENT_STATUS_TRANSITION_MAP.get(document.getStatus());
+        if (newStatus != null) {
+            document.setStatus(newStatus);
+        }
+    }
+
     private void updateDocumentIfAllChunksProcessed(String chunkId, String chunkDocumentId, IndexedDocument document) {
         log.info("Checking if chunkId '{}' was the last chunk of document[id = {}]", chunkId, chunkDocumentId);
         int allChunksCount = chunkRepository.countByDocumentId(chunkDocumentId);
@@ -113,25 +156,27 @@ public class MetaphorProcessor {
                 processingFailuresCount, allChunksCount);
 
         if (successfullyProcessedCount + processingFailuresCount == allChunksCount) {
+            var currentStatus = document.getStatus();
             log.info("All chunks of a document[id = {}] are processed.", chunkDocumentId);
             DocumentStatus documentStatus = processingFailuresCount == 0 ?
                     DocumentStatus.DONE :
                     DocumentStatus.INCOMPLETE;
             document.setStatus(documentStatus);
             documentRepository.save(document);
+
+            if (currentStatus == DocumentStatus.REPROCESSING) {
+                tryRemoveReprocessingRequest(document.getId());
+            }
         }
     }
 
-    Metaphor convertLLMReportToMetaphor(String chunkId, MetaphorLLMReport report) {
-        if (report == null) {
-            return null;
+    private void tryRemoveReprocessingRequest(String documentId) {
+        try {
+            documentReprocessingRequestRepository.deleteByDocumentId(documentId);
+        } catch (Exception e) {
+            log.error("Unable to delete the document reprocessing request[documentId = {}]. This will block the next " +
+                    "such request for the same document.", documentId, e);
         }
-
-        return Metaphor.builder()
-                .phrase(report.phrase())
-                .offset(report.offset())
-                .explanation(report.explanation())
-                .chunkId(chunkId)
-                .build();
     }
+
 }
