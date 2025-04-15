@@ -2,6 +2,6 @@ package ai.metaphor.metaphor_llm_processor.configproperties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("metaphor")
+@ConfigurationProperties("prompt")
 public record MetaphorPromptConfigProperties(String systemPrompt) {
 }

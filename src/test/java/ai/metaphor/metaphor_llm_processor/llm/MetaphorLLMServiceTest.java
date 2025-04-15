@@ -10,14 +10,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.ai.chat.prompt.PromptTemplate;
-
-import java.util.Map;
 
 @ExtendWith(MockitoExtension.class)
 class MetaphorLLMServiceTest {
 
-    private final PromptTemplate promptTemplate = Mockito.mock(PromptTemplate.class);
+    private final PromptProvider promptProvider = Mockito.mock(PromptProvider.class);
     private final LLMClient llmClient = Mockito.mock(LLMClient.class);
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -28,7 +25,7 @@ class MetaphorLLMServiceTest {
 
 
     private final MetaphorLLMService metaphorLLMService = new MetaphorLLMService(
-            promptTemplate, promptTemplateWithDirective, promptProvider, llmClient, metaphorPromptConfigProperties, objectMapper
+            promptProvider, llmClient, metaphorPromptConfigProperties, objectMapper
     );
 
 
@@ -58,14 +55,56 @@ class MetaphorLLMServiceTest {
 
         String prompt = "Test prompt";
         Mockito.doReturn(prompt)
-                .when(promptTemplate)
-                .render(Map.of(MetaphorLLMService.KEY_TEXT, text));
+                .when(promptProvider)
+                .getPrompt(documentChunk);
 
         Mockito.doReturn(expectedMetaphorReportSerialized)
                 .when(llmClient)
                 .generate(metaphorPromptConfigProperties.systemPrompt(), prompt);
 
         var metaphorLLMReports = metaphorLLMService.analyzeMetaphor(documentChunk);
+        Assertions.assertThat(metaphorLLMReports.size()).isEqualTo(1);
+
+        var metaphorLLMReport = metaphorLLMReports.get(0);
+        Assertions.assertThat(metaphorLLMReport.phrase()).isEqualTo(phrase);
+        Assertions.assertThat(metaphorLLMReport.offset()).isEqualTo(offset);
+        Assertions.assertThat(metaphorLLMReport.explanation()).isEqualTo(explanation);
+    }
+
+    @Test
+    public void givenIndexedDocumentChunkWhenAnalyzeMetaphorWithAdditionalDirectiveShouldReturnReport() {
+        String text = "Test text";
+        IndexedDocumentChunk documentChunk = IndexedDocumentChunk.builder()
+                .id("test-chunk-id")
+                .documentId("test-document-id")
+                .status(DocumentChunkStatus.PENDING)
+                .text(text)
+                .build();
+
+        String phrase = "The classroom was a zoo.";
+        int offset = 0;
+        String explanation = "This is a metaphor because it compares the classroom to a zoo without using 'like' or " +
+                "'as' (which would make it a simile). The metaphor suggests that the classroom was chaotic, noisy, " +
+                "or disorganized, much like a zoo filled with animals. It conveys an image of wild activity and disorder in" +
+                "the classroom, though it's not literally a zoo.";
+        String expectedMetaphorReportSerialized = String.format("""
+                [{
+                "phrase":"%s",\r
+                "offset":%d,\r
+                "explanation":"%s"
+                }]
+                """, phrase, offset, explanation);
+
+        String prompt = "Test prompt";
+        Mockito.doReturn(prompt)
+                .when(promptProvider)
+                .getPromptWithDirective(documentChunk);
+
+        Mockito.doReturn(expectedMetaphorReportSerialized)
+                .when(llmClient)
+                .generate(metaphorPromptConfigProperties.systemPrompt(), prompt);
+
+        var metaphorLLMReports = metaphorLLMService.analyzeMetaphorWithAdditionalDirective(documentChunk);
         Assertions.assertThat(metaphorLLMReports.size()).isEqualTo(1);
 
         var metaphorLLMReport = metaphorLLMReports.get(0);
