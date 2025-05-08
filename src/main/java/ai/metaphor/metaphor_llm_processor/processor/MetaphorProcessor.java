@@ -109,12 +109,12 @@ public class MetaphorProcessor {
         }
     }
 
-    private Set<Metaphor> analyzeMetaphors(IndexedDocument document, IndexedDocumentChunk chunk) {
+    Set<Metaphor> analyzeMetaphors(IndexedDocument document, IndexedDocumentChunk chunk) {
         List<MetaphorLLMReport> metaphorLLMReports;
 
         if (document.getStatus() == DocumentStatus.PROCESSING) {
             metaphorLLMReports = metaphorLLMService.analyzeMetaphor(chunk);
-        } else { // PENDING_PROCESSING
+        } else { // REPROCESSING
             metaphorLLMReports = metaphorLLMService.analyzeMetaphorWithAdditionalDirective(chunk);
         }
 
@@ -124,7 +124,7 @@ public class MetaphorProcessor {
                 .collect(Collectors.toSet());
     }
 
-    private Metaphor convertLLMReportToMetaphor(String chunkId, MetaphorLLMReport report) {
+    Metaphor convertLLMReportToMetaphor(String chunkId, MetaphorLLMReport report) {
         if (report == null) {
             return null;
         }
@@ -137,14 +137,14 @@ public class MetaphorProcessor {
                 .build();
     }
 
-    private void updateDocumentStatusIfNeeded(IndexedDocument document) {
+    void updateDocumentStatusIfNeeded(IndexedDocument document) {
         var newStatus = DOCUMENT_STATUS_TRANSITION_MAP.get(document.getStatus());
         if (newStatus != null) {
             document.setStatus(newStatus);
         }
     }
 
-    private void updateDocumentIfAllChunksProcessed(String chunkId, String chunkDocumentId, IndexedDocument document) {
+    void updateDocumentIfAllChunksProcessed(String chunkId, String chunkDocumentId, IndexedDocument document) {
         log.info("Checking if chunkId '{}' was the last chunk of document[id = {}]", chunkId, chunkDocumentId);
         int allChunksCount = chunkRepository.countByDocumentId(chunkDocumentId);
         // TODO: can be one aggregating query
@@ -170,7 +170,7 @@ public class MetaphorProcessor {
         }
     }
 
-    private void tryRemoveReprocessingRequest(String documentId) {
+    void tryRemoveReprocessingRequest(String documentId) {
         try {
             documentReprocessingRequestRepository.deleteByDocumentId(documentId);
         } catch (Exception e) {
