@@ -1,6 +1,6 @@
 package ai.metaphor.metaphor_llm_processor.consumer;
 
-import ai.metaphor.metaphor_llm_processor.dto.indexing.ArticleURL;
+import ai.metaphor.metaphor_llm_processor.dto.indexing.Article;
 import ai.metaphor.metaphor_llm_processor.indexing.IndexingReport;
 import ai.metaphor.metaphor_llm_processor.indexing.RetryableIndexingExecutor;
 import ai.metaphor.metaphor_llm_processor.model.*;
@@ -29,7 +29,7 @@ class DocumentIndexingConsumerTest {
 
     @Test
     public void givenArticleUrlTestIndexArticle() {
-        var articleUrl = new ArticleURL("test-source", "test-origin");
+        var articleUrl = new Article("test-source", "test-origin");
 
         var now = Instant.now();
         var documentChunkOne = new IndexedDocumentChunk(
@@ -52,7 +52,7 @@ class DocumentIndexingConsumerTest {
     public void givenArticleUrlWhenRetryableExceptionOccurredThenIndexArticleShouldStoreDocumentIndexingFailure() {
         String source = "test-source";
         String origin = "test-origin";
-        var articleUrl = new ArticleURL(source, origin);
+        var articleUrl = new Article(source, origin);
         String errorMessage = "Document indexing failed.";
 
         var indexingReport = new IndexingReport(
@@ -84,7 +84,7 @@ class DocumentIndexingConsumerTest {
     public void givenArticleUrlWhenNonRetryableExceptionOccurredThenIndexArticleShouldNotStoreDocumentIndexingFailure() {
         String source = "test-source";
         String origin = "test-origin";
-        var articleUrl = new ArticleURL(source, origin);
+        var articleUrl = new Article(source, origin);
 
         var indexingReport = new IndexingReport(
                 null, new RuntimeException("Document indexing failed."), false

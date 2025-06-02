@@ -31,7 +31,7 @@ class MetaphorProcessorTest {
     );
     private final MetaphorLLMService metaphorLLMService = Mockito.mock(MetaphorLLMService.class);
     private final ProcessingConfigProperties processingConfigProperties = new ProcessingConfigProperties(
-            3, 100
+            3, 100, "q.testreprocessingq"
     );
 
     private final MetaphorProcessor metaphorProcessor = new MetaphorProcessor(
@@ -78,8 +78,12 @@ class MetaphorProcessorTest {
                 .build();
         Mockito.doReturn(processingChunk).when(chunkRepository).save(documentChunk);
 
-        var metaphorReportOne = new MetaphorLLMReport("test-phrase-1", 5, "test-explanation-1");
-        var metaphorReportTwo = new MetaphorLLMReport("test-phrase-2", 15, "test-explanation-2");
+        var metaphorReportOne = new MetaphorLLMReport(
+                "test-phrase-1", 5, "direct", "test-explanation-1"
+        );
+        var metaphorReportTwo = new MetaphorLLMReport(
+                "test-phrase-2", 15, "direct", "test-explanation-2"
+        );
         var metaphorReports = List.of(metaphorReportOne, metaphorReportTwo);
         Mockito.doReturn(metaphorReports).when(metaphorLLMService).analyzeMetaphor(documentChunk);
 
@@ -121,12 +125,14 @@ class MetaphorProcessorTest {
         Assertions.assertThat(firstMetaphor.getExplanation()).isEqualTo(metaphorReportOne.explanation());
         Assertions.assertThat(firstMetaphor.getOffset()).isEqualTo(metaphorReportOne.offset());
         Assertions.assertThat(firstMetaphor.getPhrase()).isEqualTo(metaphorReportOne.phrase());
+        Assertions.assertThat(firstMetaphor.getType()).isEqualTo(MetaphorType.DIRECT);
 
         var secondMetaphor = savedMetaphors.get(1);
         Assertions.assertThat(secondMetaphor.getChunkId()).isEqualTo(chunkId);
         Assertions.assertThat(secondMetaphor.getExplanation()).isEqualTo(metaphorReportTwo.explanation());
         Assertions.assertThat(secondMetaphor.getOffset()).isEqualTo(metaphorReportTwo.offset());
         Assertions.assertThat(secondMetaphor.getPhrase()).isEqualTo(metaphorReportTwo.phrase());
+        Assertions.assertThat(firstMetaphor.getType()).isEqualTo(MetaphorType.DIRECT);
     }
 
     @Test
@@ -290,8 +296,12 @@ class MetaphorProcessorTest {
                 .id(chunkId)
                 .documentId(documentId)
                 .build();
-        var metaphorReportOne = new MetaphorLLMReport("test-phrase-1", 5, "test-explanation-1");
-        var metaphorReportTwo = new MetaphorLLMReport("test-phrase-2", 15, "test-explanation-2");
+        var metaphorReportOne = new MetaphorLLMReport(
+                "test-phrase-1", 5, "direct", "test-explanation-1"
+        );
+        var metaphorReportTwo = new MetaphorLLMReport(
+                "test-phrase-2", 15, "direct", "test-explanation-2"
+        );
         var metaphorReports = List.of(metaphorReportOne, metaphorReportTwo);
         Mockito.doReturn(metaphorReports).when(metaphorLLMService).analyzeMetaphorWithAdditionalDirective(documentChunk);
 
@@ -307,12 +317,14 @@ class MetaphorProcessorTest {
         Assertions.assertThat(firstMetaphor.getExplanation()).isEqualTo(metaphorReportOne.explanation());
         Assertions.assertThat(firstMetaphor.getOffset()).isEqualTo(metaphorReportOne.offset());
         Assertions.assertThat(firstMetaphor.getPhrase()).isEqualTo(metaphorReportOne.phrase());
+        Assertions.assertThat(firstMetaphor.getType()).isEqualTo(MetaphorType.DIRECT);
 
         var secondMetaphor = metaphors.get(1);
         Assertions.assertThat(secondMetaphor.getChunkId()).isEqualTo(chunkId);
         Assertions.assertThat(secondMetaphor.getExplanation()).isEqualTo(metaphorReportTwo.explanation());
         Assertions.assertThat(secondMetaphor.getOffset()).isEqualTo(metaphorReportTwo.offset());
         Assertions.assertThat(secondMetaphor.getPhrase()).isEqualTo(metaphorReportTwo.phrase());
+        Assertions.assertThat(firstMetaphor.getType()).isEqualTo(MetaphorType.DIRECT);
     }
 
     @Test
@@ -423,6 +435,15 @@ class MetaphorProcessorTest {
         var savedDocument = documentArgumentCaptor.getValue();
         Assertions.assertThat(savedDocument.getId()).isEqualTo(documentId);
         Assertions.assertThat(savedDocument.getStatus()).isEqualTo(DocumentStatus.DONE);
+    }
+
+    @Test
+    public void testTryRemoveReprocessingRequestWhenExceptionIsThrown() {
+        var documentId = "test-doc-id";
+        Mockito.doThrow(new RuntimeException("Exception"))
+                .when(documentReprocessingRequestRepository)
+                .deleteByDocumentId(documentId);
+        metaphorProcessor.tryRemoveReprocessingRequest(documentId);
     }
 
     private static Stream<Arguments> provideDocumentsWithStatuses() {

@@ -1,6 +1,6 @@
 package ai.metaphor.metaphor_llm_processor.consumer;
 
-import ai.metaphor.metaphor_llm_processor.dto.indexing.ArticleURL;
+import ai.metaphor.metaphor_llm_processor.dto.indexing.Article;
 import ai.metaphor.metaphor_llm_processor.indexing.IndexingReport;
 import ai.metaphor.metaphor_llm_processor.indexing.RetryableIndexingExecutor;
 import ai.metaphor.metaphor_llm_processor.model.DocumentIndexingAttempt;
@@ -8,13 +8,15 @@ import ai.metaphor.metaphor_llm_processor.model.DocumentIndexingFailure;
 import ai.metaphor.metaphor_llm_processor.model.OriginType;
 import ai.metaphor.metaphor_llm_processor.repository.DocumentIndexingFailureRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.List;
 
 @Slf4j
-@Component // as of now until RMQ dep is added
+@Component
+
 public class DocumentIndexingConsumer {
 
     private final RetryableIndexingExecutor retryableIndexingExecutor;
@@ -26,9 +28,10 @@ public class DocumentIndexingConsumer {
         this.documentIndexingFailureRepository = documentIndexingFailureRepository;
     }
 
-    public void indexArticle(ArticleURL articleUrl) {
-        String source = articleUrl.source();
-        String origin = articleUrl.origin();
+    @RabbitListener(queues = "#{@'indexing-ai.metaphor.metaphor_llm_processor.configproperties.IndexingConfigProperties'.queue}")// TODO: think about the concurrency
+    public void indexArticle(Article article) {
+        String source = article.source();
+        String origin = article.origin();
         log.info("Indexing an article: path = {}, origin = {}", source, origin);
 
         Instant now = Instant.now();

@@ -11,7 +11,7 @@ import java.util.List;
 public interface IndexedDocumentChunkRepository extends MongoRepository<IndexedDocumentChunk, String> {
 
     @Aggregation(pipeline = {
-            "{$match: { 'documentId': ?1, 'status': {$in: ['PENDING', 'NEXT_ATTEMPT_NEEDED', 'PENDING_REPROCESSING']}}}",
+            "{$match: { 'documentId': ?0, 'status': {$in: ['PENDING', 'NEXT_ATTEMPT_NEEDED', 'PENDING_REPROCESSING']}}}",
             "{$sort: {'order': 1}}",
             "{$limit: 1}"
     })

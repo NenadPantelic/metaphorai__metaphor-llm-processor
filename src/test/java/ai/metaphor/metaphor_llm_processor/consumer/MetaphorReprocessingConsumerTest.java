@@ -109,10 +109,10 @@ class MetaphorReprocessingConsumerTest {
 
         var now = Instant.now();
         var metaphorOne = new Metaphor(
-                chunkIdOne, 3, "test-phrase-1", "test-explanation-1", now, now
+                chunkIdOne, 3, "test-phrase-1", MetaphorType.DIRECT, "test-explanation-1", now, now
         );
         var metaphorTwo = new Metaphor(
-                chunkIdTwo, 5, "test-phrase-2", "test-explanation-2", now, now
+                chunkIdTwo, 5, "test-phrase-2", MetaphorType.INDIRECT, "test-explanation-2", now, now
         );
         Set<Metaphor> metaphors = new HashSet<>();
         metaphors.add(metaphorOne);

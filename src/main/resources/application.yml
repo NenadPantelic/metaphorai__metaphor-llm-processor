@@ -31,6 +31,10 @@ spring:
             isMajority: true
           timeout:
             milliseconds: 100000
+  rabbitmq:
+    addresses: "localhost:5672"
+    username: metaphorai
+    password: M3T4Ph0841
 
 metaphor:
   system-prompt: #TODO
@@ -38,7 +42,9 @@ metaphor:
 indexing:
   max-retry: 3
   retry-interval-in-millis: 30000
+  queue: q.article
 
 processing:
   max-retry: 3
   interval-in-millis: 60000 # 1 minute
+  reprocessing-queue: q.article-reprocessing

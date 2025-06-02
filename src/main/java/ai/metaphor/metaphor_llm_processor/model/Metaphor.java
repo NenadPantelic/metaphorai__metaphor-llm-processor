@@ -28,6 +28,7 @@ public class Metaphor {
     // metaphor phrase
     @NotBlank
     private final String phrase;
+    private final MetaphorType type;
     private final String explanation;
     @CreatedDate
     private final Instant createdAt;

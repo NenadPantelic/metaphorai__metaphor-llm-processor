@@ -133,6 +133,7 @@ public class MetaphorProcessor {
                 .phrase(report.phrase())
                 .offset(report.offset())
                 .explanation(report.explanation())
+                .type(MetaphorType.valueOf(report.metaphorType()))
                 .chunkId(chunkId)
                 .build();
     }

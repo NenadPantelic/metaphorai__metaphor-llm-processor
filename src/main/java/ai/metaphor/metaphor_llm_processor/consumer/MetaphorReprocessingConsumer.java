@@ -8,6 +8,7 @@ import ai.metaphor.metaphor_llm_processor.repository.DocumentReprocessingRequest
 import ai.metaphor.metaphor_llm_processor.repository.IndexedDocumentChunkRepository;
 import ai.metaphor.metaphor_llm_processor.repository.IndexedDocumentRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -30,6 +31,7 @@ public class MetaphorReprocessingConsumer {
         this.documentReprocessingRequestRepository = documentReprocessingRequestRepository;
     }
 
+    @RabbitListener(queues = "#{@'processing-ai.metaphor.metaphor_llm_processor.configproperties.ProcessingConfigProperties'.reprocessingQueue}")
     public void consume(String documentId, List<String> reasons) {
         log.info("Processing the document[id = {}]", documentId);
 
