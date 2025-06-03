@@ -21,7 +21,7 @@ class MetaphorLlmProcessorApplicationTests {
 
     // dummy test to check how the indexing works
     // TODO: remove
-    @Test
+   // @Test
     public void run() {
         // thetimes.com
         String url = "https://www.thetimes.com/uk/technology-uk/article/i-used-my-21st-birthday-money-to-patent-an-app-that-protects-women-vf0bkqgt3";

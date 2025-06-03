@@ -31,7 +31,7 @@ public class RetryableIndexingExecutor {
         int attemptNo = attemptsSoFar + 1;
         try {
             List<IndexedDocumentChunk> chunks = documentIndexingService.indexFromURL(source, origin);
-            log.info("Document indexing [path = {}, origin = {}] has passed with {}. attempt", source, origin, attemptNo);
+            log.info("Document indexing [path = {}, origin = {}] has passed with {} attempt", source, origin, attemptNo);
             return new IndexingReport(chunks, null, false);
         } catch (Exception e) {
             // TODO: retry should not be allowed for all exception types
