@@ -2,15 +2,17 @@ package ai.metaphor.metaphor_llm_processor.llm.client;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import java.util.Optional;
-
 @Slf4j
 @Component
 public class ChatGPTClient implements LLMClient {
+
+    private static final String JSON_MD_START_MARKER = "```json";
+    private static final String JSON_MD_END_MARKER = "```";
 
     private final ChatClient chatClient;
 
@@ -24,10 +26,17 @@ public class ChatGPTClient implements LLMClient {
         log.info("Generating a response based on: systemPrompt = {}, userPrompt = {}", systemPrompt, userPrompt);
         Assert.hasText(userPrompt, "User prompt must not be blank");
 
-        return chatClient.prompt()
-                .system(Optional.ofNullable(systemPrompt).orElse(""))
+        String result = chatClient.prompt()
+                .system(systemPrompt)
                 .user(userPrompt)
                 .call()
                 .content();
+
+        // check if it has JSON MD markers. If it does, remove them.
+        if (result != null && result.startsWith(JSON_MD_START_MARKER) && result.endsWith(JSON_MD_END_MARKER)) {
+            return result.substring(JSON_MD_START_MARKER.length(), result.length() - JSON_MD_END_MARKER.length());
+        }
+
+        return result;
     }
 }

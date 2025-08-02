@@ -1,4 +1,4 @@
-## Publish to `article` exchange
+## Publish to `article` exchange - test 1
 
 POST http://localhost:15672/api/exchanges/%2f/x.article/publish
 Authorization: Basic metaphorai:M3T4Ph0841
@@ -13,3 +13,4 @@ Content-Type: application/json
   "headers": {},
   "payload_encoding": "string"
 }
+

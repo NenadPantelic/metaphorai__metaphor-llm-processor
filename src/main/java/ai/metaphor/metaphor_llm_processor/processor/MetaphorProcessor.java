@@ -52,7 +52,7 @@ public class MetaphorProcessor {
         // NOTE: document reprocessing is expected to happen after the initial processing
         Optional<IndexedDocument> documentOptional = documentRepository.findOldestEligibleDocumentForProcessing();
         if (documentOptional.isEmpty()) {
-            log.error("There is no any document that is ready for processing...");
+            log.warn("There is no document that is ready for processing...");
             return;
         }
 
@@ -82,7 +82,9 @@ public class MetaphorProcessor {
             chunkToProcess = chunkRepository.save(chunkToProcess);
 
             var metaphors = analyzeMetaphors(document, chunkToProcess);
+            log.info("Document[id = {}] metaphor analysis done. Analyzed metaphors: {}", document.getId(), metaphors);
             document.addMetaphors(metaphors);
+            documentRepository.save(document); // not to keep it in memory if something crashes
 
             chunkToProcess.setStatus(DocumentChunkStatus.SUCCESSFULLY_PROCESSED);
             chunkToProcess.setLastProcessingAttemptedAt(now);

@@ -37,7 +37,7 @@ spring:
     password: M3T4Ph0841
 
 metaphor:
-  system-prompt: #TODO
+  system-prompt: You are a linguist, an expert for metaphor in English.
 
 indexing:
   max-retry: 3

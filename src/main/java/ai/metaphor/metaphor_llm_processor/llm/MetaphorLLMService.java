@@ -9,6 +9,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.model.Generation;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -46,6 +48,12 @@ public class MetaphorLLMService {
         log.info("Analyze metaphor in chunk: {}", documentChunk);
         String prompt = promptProvider.getPrompt(documentChunk);
         String response = llmClient.generate(systemPrompt, prompt);
+//        System.out.println(response.getMetadata().getModel());
+//        List<Generation> results = response.getResults();
+//        results.forEach(result -> {
+//            log.info("Result: {}", result.getOutput());
+//        });
+        log.info("LLM response: {}", response);
         return deserialize(response);
     }
 
@@ -58,8 +66,9 @@ public class MetaphorLLMService {
     public List<MetaphorLLMReport> analyzeMetaphorWithAdditionalDirective(IndexedDocumentChunk documentChunk) {
         log.info("Analyze metaphor in chunk: {}", documentChunk);
         String prompt = promptProvider.getPromptWithDirective(documentChunk);
-        String response = llmClient.generate(systemPrompt, prompt);
-        return deserialize(response);
+        return null;
+//        ChatResponse response = llmClient.generate(systemPrompt, prompt);
+//        return deserialize(response.toString());
     }
 
     private List<MetaphorLLMReport> deserialize(String content) {
