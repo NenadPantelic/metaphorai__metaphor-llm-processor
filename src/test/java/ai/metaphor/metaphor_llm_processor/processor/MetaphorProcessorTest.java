@@ -79,10 +79,10 @@ class MetaphorProcessorTest {
         Mockito.doReturn(processingChunk).when(chunkRepository).save(documentChunk);
 
         var metaphorReportOne = new MetaphorLLMReport(
-                "test-phrase-1", 5, "direct", "test-explanation-1"
+                "test-phrase-1", 5, MetaphorType.DIRECT.name() , "test-explanation-1"
         );
         var metaphorReportTwo = new MetaphorLLMReport(
-                "test-phrase-2", 15, "direct", "test-explanation-2"
+                "test-phrase-2", 15, MetaphorType.DIRECT.name(), "test-explanation-2"
         );
         var metaphorReports = List.of(metaphorReportOne, metaphorReportTwo);
         Mockito.doReturn(metaphorReports).when(metaphorLLMService).analyzeMetaphor(documentChunk);
@@ -118,8 +118,8 @@ class MetaphorProcessorTest {
                 .stream()
                 .sorted(Comparator.comparing(Metaphor::getOffset))
                 .toList();
-
         Assertions.assertThat(savedMetaphors.size()).isEqualTo(2);
+
         var firstMetaphor = savedMetaphors.get(0);
         Assertions.assertThat(firstMetaphor.getChunkId()).isEqualTo(chunkId);
         Assertions.assertThat(firstMetaphor.getExplanation()).isEqualTo(metaphorReportOne.explanation());
@@ -297,10 +297,10 @@ class MetaphorProcessorTest {
                 .documentId(documentId)
                 .build();
         var metaphorReportOne = new MetaphorLLMReport(
-                "test-phrase-1", 5, "direct", "test-explanation-1"
+                "test-phrase-1", 5, MetaphorType.DIRECT.name(), "test-explanation-1"
         );
         var metaphorReportTwo = new MetaphorLLMReport(
-                "test-phrase-2", 15, "direct", "test-explanation-2"
+                "test-phrase-2", 15, MetaphorType.DIRECT.name(), "test-explanation-2"
         );
         var metaphorReports = List.of(metaphorReportOne, metaphorReportTwo);
         Mockito.doReturn(metaphorReports).when(metaphorLLMService).analyzeMetaphorWithAdditionalDirective(documentChunk);

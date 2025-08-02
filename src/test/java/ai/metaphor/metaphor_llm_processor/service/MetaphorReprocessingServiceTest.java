@@ -1,5 +1,6 @@
-package ai.metaphor.metaphor_llm_processor.consumer;
+package ai.metaphor.metaphor_llm_processor.service;
 
+import ai.metaphor.metaphor_llm_processor.dto.metaphor.MetaphorReprocessingRequest;
 import ai.metaphor.metaphor_llm_processor.model.*;
 import ai.metaphor.metaphor_llm_processor.repository.DocumentReprocessingRequestRepository;
 import ai.metaphor.metaphor_llm_processor.repository.IndexedDocumentChunkRepository;
@@ -15,8 +16,7 @@ import java.time.Instant;
 import java.util.*;
 
 @ExtendWith(MockitoExtension.class)
-class MetaphorReprocessingConsumerTest {
-
+class MetaphorReprocessingServiceTest {
 
     private final IndexedDocumentRepository documentRepository = Mockito.mock(IndexedDocumentRepository.class);
     private final IndexedDocumentChunkRepository chunkRepository = Mockito.mock(IndexedDocumentChunkRepository.class);
@@ -24,7 +24,7 @@ class MetaphorReprocessingConsumerTest {
             DocumentReprocessingRequestRepository.class
     );
 
-    private final MetaphorReprocessingConsumer metaphorReprocessingConsumer = new MetaphorReprocessingConsumer(
+    private final MetaphorReprocessingService metaphorReprocessingService = new MetaphorReprocessingServiceImpl(
             documentRepository, chunkRepository, documentReprocessingRequestRepository
     );
 
@@ -36,7 +36,7 @@ class MetaphorReprocessingConsumerTest {
         ArgumentCaptor<DocumentReprocessingRequest> argumentCaptor = ArgumentCaptor.forClass(
                 DocumentReprocessingRequest.class
         );
-        metaphorReprocessingConsumer.consume(documentId, null);
+        metaphorReprocessingService.handleReprocessingRequest(new MetaphorReprocessingRequest(documentId, null));
 
         Mockito.verify(documentReprocessingRequestRepository, Mockito.never())
                 .save(argumentCaptor.capture());
@@ -54,7 +54,7 @@ class MetaphorReprocessingConsumerTest {
         ArgumentCaptor<DocumentReprocessingRequest> argumentCaptor = ArgumentCaptor.forClass(
                 DocumentReprocessingRequest.class
         );
-        metaphorReprocessingConsumer.consume(documentId, null);
+        metaphorReprocessingService.handleReprocessingRequest(new MetaphorReprocessingRequest(documentId, null));
 
         Mockito.verify(documentReprocessingRequestRepository, Mockito.never())
                 .save(argumentCaptor.capture());
@@ -91,7 +91,7 @@ class MetaphorReprocessingConsumerTest {
                 .when(documentReprocessingRequestRepository)
                 .save(expectedReprocessingRequest);
 
-        metaphorReprocessingConsumer.consume(documentId, reasons);
+        metaphorReprocessingService.handleReprocessingRequest(new MetaphorReprocessingRequest(documentId, reasons));
 
         Mockito.verify(documentReprocessingRequestRepository, Mockito.times(1))
                 .save(reprocessingRequestArgumentCaptor.capture());
@@ -169,7 +169,7 @@ class MetaphorReprocessingConsumerTest {
         var chunks = List.of(chunkOne, chunkTwo);
         Mockito.doReturn(chunks).when(chunkRepository).findByDocumentId(documentId);
 
-        metaphorReprocessingConsumer.consume(documentId, reasons);
+        metaphorReprocessingService.handleReprocessingRequest(new MetaphorReprocessingRequest(documentId, reasons));
 
         Mockito.verify(documentReprocessingRequestRepository, Mockito.times(1))
                 .save(reprocessingRequestArgumentCaptor.capture());

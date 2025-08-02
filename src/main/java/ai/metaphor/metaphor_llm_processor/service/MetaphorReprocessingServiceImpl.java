@@ -1,5 +1,6 @@
-package ai.metaphor.metaphor_llm_processor.consumer;
+package ai.metaphor.metaphor_llm_processor.service;
 
+import ai.metaphor.metaphor_llm_processor.dto.metaphor.MetaphorReprocessingRequest;
 import ai.metaphor.metaphor_llm_processor.model.DocumentChunkStatus;
 import ai.metaphor.metaphor_llm_processor.model.DocumentReprocessingRequest;
 import ai.metaphor.metaphor_llm_processor.model.DocumentStatus;
@@ -8,32 +9,32 @@ import ai.metaphor.metaphor_llm_processor.repository.DocumentReprocessingRequest
 import ai.metaphor.metaphor_llm_processor.repository.IndexedDocumentChunkRepository;
 import ai.metaphor.metaphor_llm_processor.repository.IndexedDocumentRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Slf4j
-@Component
-public class MetaphorReprocessingConsumer {
+@Service
+public class MetaphorReprocessingServiceImpl implements MetaphorReprocessingService{
 
     private static final List<DocumentStatus> FINAL_STATUSES = List.of(DocumentStatus.DONE, DocumentStatus.INCOMPLETE);
     private final IndexedDocumentRepository documentRepository;
     private final IndexedDocumentChunkRepository chunkRepository;
     private final DocumentReprocessingRequestRepository documentReprocessingRequestRepository;
 
-    public MetaphorReprocessingConsumer(IndexedDocumentRepository documentRepository,
-                                        IndexedDocumentChunkRepository chunkRepository,
-                                        DocumentReprocessingRequestRepository documentReprocessingRequestRepository) {
+    public MetaphorReprocessingServiceImpl(IndexedDocumentRepository documentRepository,
+                                           IndexedDocumentChunkRepository chunkRepository,
+                                           DocumentReprocessingRequestRepository documentReprocessingRequestRepository) {
         this.documentRepository = documentRepository;
         this.chunkRepository = chunkRepository;
         this.documentReprocessingRequestRepository = documentReprocessingRequestRepository;
     }
 
-    @RabbitListener(queues = "#{@'processing-ai.metaphor.metaphor_llm_processor.configproperties.ProcessingConfigProperties'.reprocessingQueue}")
-    public void consume(String documentId, List<String> reasons) {
-        log.info("Processing the document[id = {}]", documentId);
+    public void handleReprocessingRequest(MetaphorReprocessingRequest metaphorReprocessingRequest) {
+        String documentId = metaphorReprocessingRequest.documentId();
+        List<String> reasons = metaphorReprocessingRequest.reasons();
+        log.info("Processing the document[id = {}]. Reasons: {}", documentId, reasons);
 
         Optional<IndexedDocument> documentOptional = documentRepository.findById(documentId);
         if (documentOptional.isEmpty()) {

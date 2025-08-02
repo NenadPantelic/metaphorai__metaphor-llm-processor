@@ -49,7 +49,7 @@ public class MetaphorProcessor {
     public void process() {
         log.info("Processing the next document/chunk...");
 
-        // NOTE: reprocessing documents is expected to happen after the initial processing
+        // NOTE: document reprocessing is expected to happen after the initial processing
         Optional<IndexedDocument> documentOptional = documentRepository.findOldestEligibleDocumentForProcessing();
         if (documentOptional.isEmpty()) {
             log.error("There is no any document that is ready for processing...");
@@ -94,6 +94,7 @@ public class MetaphorProcessor {
         } catch (Exception e) {
             // TODO: LLM can be unavailable or return a result that is not serializable (though this should not happen
             // with newer versions of LLM)
+            log.warn("The document[id = {}] processing failed. Reason: {}", document.getId(), e.getMessage(), e);
             chunkToProcess.addAttempt(new ChunkProcessingAttempt(now, e.getMessage()));
             chunkToProcess.setLastProcessingAttemptedAt(now);
 
