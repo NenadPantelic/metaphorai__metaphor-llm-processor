@@ -29,12 +29,7 @@ public class DocumentReprocessingRequest {
     private String documentId;
 
     @NotBlank
-    private List<String> reasons; // or directives...TODO: consult with A
-
-    // to avoid converting to directive whenever we need it, and we would have consecutive
-    // runs using the same directive
-    @NotBlank
-    private String directive;
+    private List<String> reasons;
 
     @CreatedDate
     private Instant createdAt;

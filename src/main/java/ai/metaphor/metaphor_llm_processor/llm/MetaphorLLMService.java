@@ -48,11 +48,6 @@ public class MetaphorLLMService {
         log.info("Analyze metaphor in chunk: {}", documentChunk);
         String prompt = promptProvider.getPrompt(documentChunk);
         String response = llmClient.generate(systemPrompt, prompt);
-//        System.out.println(response.getMetadata().getModel());
-//        List<Generation> results = response.getResults();
-//        results.forEach(result -> {
-//            log.info("Result: {}", result.getOutput());
-//        });
         log.info("LLM response: {}", response);
         return deserialize(response);
     }
@@ -66,9 +61,9 @@ public class MetaphorLLMService {
     public List<MetaphorLLMReport> analyzeMetaphorWithAdditionalDirective(IndexedDocumentChunk documentChunk) {
         log.info("Analyze metaphor in chunk: {}", documentChunk);
         String prompt = promptProvider.getPromptWithDirective(documentChunk);
-        return null;
-//        ChatResponse response = llmClient.generate(systemPrompt, prompt);
-//        return deserialize(response.toString());
+        String response = llmClient.generate(systemPrompt, prompt);
+        log.info("LLM response: {}", response);
+        return deserialize(response);
     }
 
     private List<MetaphorLLMReport> deserialize(String content) {

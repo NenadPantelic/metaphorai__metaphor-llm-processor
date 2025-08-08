@@ -81,11 +81,9 @@ class MetaphorReprocessingServiceTest {
         );
 
         var reasons = List.of("test reason 1", "test reason 2");
-        var directive = String.format("%s\n%s", reasons.get(0), reasons.get(1));
         var expectedReprocessingRequest = DocumentReprocessingRequest.builder()
                 .documentId(documentId)
                 .reasons(reasons)
-                .directive(directive)
                 .build();
         Mockito.doThrow(new RuntimeException("Unable to create a document reprocessing request"))
                 .when(documentReprocessingRequestRepository)
@@ -136,11 +134,9 @@ class MetaphorReprocessingServiceTest {
         );
 
         var reasons = List.of("test reason 1", "test reason 2");
-        var directive = String.format("%s\n%s", reasons.get(0), reasons.get(1));
         var expectedReprocessingRequest = DocumentReprocessingRequest.builder()
                 .documentId(documentId)
                 .reasons(reasons)
-                .directive(directive)
                 .build();
         Mockito.doReturn(expectedReprocessingRequest).when(documentReprocessingRequestRepository)
                 .save(expectedReprocessingRequest);

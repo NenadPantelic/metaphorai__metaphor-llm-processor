@@ -20,7 +20,7 @@ class MetaphorLLMServiceTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final MetaphorPromptConfigProperties metaphorPromptConfigProperties = new MetaphorPromptConfigProperties(
-            "You are a linguistic expert for metaphor"
+            "You are a linguistic expert for metaphor", "test directive"
     );
 
 

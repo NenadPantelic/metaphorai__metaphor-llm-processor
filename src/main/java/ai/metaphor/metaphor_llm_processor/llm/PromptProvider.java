@@ -1,5 +1,6 @@
 package ai.metaphor.metaphor_llm_processor.llm;
 
+import ai.metaphor.metaphor_llm_processor.configproperties.MetaphorPromptConfigProperties;
 import ai.metaphor.metaphor_llm_processor.exception.PromptException;
 import ai.metaphor.metaphor_llm_processor.model.IndexedDocumentChunk;
 import ai.metaphor.metaphor_llm_processor.repository.DocumentReprocessingRequestRepository;
@@ -22,12 +23,16 @@ public class PromptProvider {
 
     private final DocumentReprocessingRequestRepository documentReprocessingRequestRepository;
 
+    private final String reprocessingDirective;
+
     public PromptProvider(@Qualifier("promptTemplate") PromptTemplate promptTemplate,
                           @Qualifier("promptTemplateWithDirective") PromptTemplate promptTemplateWithDirective,
-                          DocumentReprocessingRequestRepository documentReprocessingRequestRepository) {
+                          DocumentReprocessingRequestRepository documentReprocessingRequestRepository,
+                          MetaphorPromptConfigProperties metaphorPromptConfigProperties) {
         this.promptTemplate = promptTemplate;
         this.promptTemplateWithDirective = promptTemplateWithDirective;
         this.documentReprocessingRequestRepository = documentReprocessingRequestRepository;
+        this.reprocessingDirective = metaphorPromptConfigProperties.reprocessingDirective();
     }
 
     public String getPrompt(IndexedDocumentChunk chunk) {
@@ -38,25 +43,22 @@ public class PromptProvider {
 
     public String getPromptWithDirective(IndexedDocumentChunk chunk) {
         var documentId = chunk.getDocumentId();
-        var directive = getDirectiveFromReprocessingRequest(documentId);
+        checkIfReprocessingRequestExist(documentId);
         var templateMap = new HashMap<String, Object>();
         templateMap.put(KEY_TEXT, chunk.getText());
-        templateMap.put(KEY_DIRECTIVE, directive);
+        templateMap.put(KEY_DIRECTIVE, reprocessingDirective);
         return promptTemplateWithDirective.render(templateMap);
     }
 
-    private String getDirectiveFromReprocessingRequest(String documentId) {
-        var reprocessingRequestOptional = documentReprocessingRequestRepository.findByDocumentId(documentId);
-        if (reprocessingRequestOptional.isEmpty()) {
+    private void checkIfReprocessingRequestExist(String documentId) {
+        documentReprocessingRequestRepository.findByDocumentId(documentId).orElseThrow(() -> {
             log.error("Document reprocessing request for documentId '{}' not found. Unable to get the directive.", documentId);
-            throw new PromptException(
+            return new PromptException(
                     String.format(
                             "Document reprocessing request for documentId '%s' not found. Unable to get the directive.",
                             documentId
                     )
             );
-        }
-
-        return reprocessingRequestOptional.get().getDirective();
+        });
     }
 }

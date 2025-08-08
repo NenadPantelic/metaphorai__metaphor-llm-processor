@@ -1,5 +1,6 @@
 package ai.metaphor.metaphor_llm_processor.llm;
 
+import ai.metaphor.metaphor_llm_processor.configproperties.MetaphorPromptConfigProperties;
 import ai.metaphor.metaphor_llm_processor.exception.PromptException;
 import ai.metaphor.metaphor_llm_processor.model.DocumentChunkStatus;
 import ai.metaphor.metaphor_llm_processor.model.DocumentReprocessingRequest;
@@ -36,8 +37,12 @@ class PromptProviderTest {
             DocumentReprocessingRequestRepository.class
     );
 
+    private final MetaphorPromptConfigProperties metaphorPromptConfigProperties = Mockito.mock(
+            MetaphorPromptConfigProperties.class
+    );
+
     private final PromptProvider promptProvider = new PromptProvider(
-            promptTemplate, promptTemplateWithDirective, reprocessingRequestRepository
+            promptTemplate, promptTemplateWithDirective, reprocessingRequestRepository, metaphorPromptConfigProperties
     );
 
     @Test
@@ -70,11 +75,10 @@ class PromptProviderTest {
         var directive = "Test directive";
         DocumentReprocessingRequest reprocessingRequest = DocumentReprocessingRequest.builder()
                 .documentId(documentId)
-                .directive(directive)
-                .directive(directive)
                 .build();
         Mockito.doReturn(Optional.of(reprocessingRequest))
                 .when(reprocessingRequestRepository).findByDocumentId(documentId);
+        Mockito.doReturn(directive).when(metaphorPromptConfigProperties).reprocessingDirective();
 
         var expectedPrompt = PROMPT_TEMPLATE_WITH_DIRECTIVE.replace(TEXT_PLACEHOLDER, text)
                 .replace(DIRECTIVE_PLACEHOLDER, directive);

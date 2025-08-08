@@ -16,7 +16,7 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-public class MetaphorReprocessingServiceImpl implements MetaphorReprocessingService{
+public class MetaphorReprocessingServiceImpl implements MetaphorReprocessingService {
 
     private static final List<DocumentStatus> FINAL_STATUSES = List.of(DocumentStatus.DONE, DocumentStatus.INCOMPLETE);
     private final IndexedDocumentRepository documentRepository;
@@ -65,12 +65,12 @@ public class MetaphorReprocessingServiceImpl implements MetaphorReprocessingServ
         chunkRepository.saveAll(chunks);
     }
 
-    private Optional<DocumentReprocessingRequest> tryCreateReprocessingRequest(String documentId, List<String> reasons) {
+    private Optional<DocumentReprocessingRequest> tryCreateReprocessingRequest(String documentId,
+                                                                               List<String> reasons) {
         try {
             var reprocessingRequest = DocumentReprocessingRequest.builder()
                     .documentId(documentId)
                     .reasons(reasons)
-                    .directive(getDirectiveFromReprocessingRequest(reasons))
                     .build();
             reprocessingRequest = documentReprocessingRequestRepository.save(reprocessingRequest);
             return Optional.of(reprocessingRequest);
@@ -79,12 +79,5 @@ public class MetaphorReprocessingServiceImpl implements MetaphorReprocessingServ
                     documentId, reasons, e);
             return Optional.empty();
         }
-    }
-
-    private String getDirectiveFromReprocessingRequest(List<String> reasons) {
-        // TODO - need another template for this
-        // maybe to map constants to more verbose directions and then concatenate them
-        // consult with A
-        return String.join("\n", reasons);
     }
 }
