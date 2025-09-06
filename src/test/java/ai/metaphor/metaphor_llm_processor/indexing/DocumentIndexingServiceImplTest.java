@@ -22,13 +22,13 @@ class DocumentIndexingServiceImplTest {
 
     // By default, both JUnit 4 and 5 create a new instance of the test class before running each test method.
     // This provides a clean separation of state between tests.
-    private final ResourceDocumentReader resourceDocumentReader = Mockito.mock(ResourceDocumentReader.class);
+    private final HTMLArticleDocumentReader HTMLArticleDocumentReader = Mockito.mock(HTMLArticleDocumentReader.class);
     private final TextSplitter textSplitter = Mockito.mock(TextSplitter.class);
     private final IndexedDocumentRepository documentRepository = Mockito.mock(IndexedDocumentRepository.class);
     private final IndexedDocumentChunkRepository chunkRepository = Mockito.mock(IndexedDocumentChunkRepository.class);
 
     private final DocumentIndexingServiceImpl documentIndexingService = new DocumentIndexingServiceImpl(
-            resourceDocumentReader, textSplitter, documentRepository, chunkRepository
+            HTMLArticleDocumentReader, textSplitter, documentRepository, chunkRepository
     );
 
 

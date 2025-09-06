@@ -123,22 +123,29 @@ public class MetaphorProcessor {
 
         return metaphorLLMReports
                 .stream()
-                .map(report -> convertLLMReportToMetaphor(chunk.getId(), report))
+                .map(report -> convertLLMReportToMetaphor(document.getId(), chunk.getId(), chunk.getText().length(), report))
                 .collect(Collectors.toSet());
     }
 
-    Metaphor convertLLMReportToMetaphor(String chunkId, MetaphorLLMReport report) {
+    Metaphor convertLLMReportToMetaphor(IndexedDocumentChunk chunk, MetaphorLLMReport report) {
         if (report == null) {
             return null;
         }
 
         return Metaphor.builder()
                 .phrase(report.phrase())
-                .offset(report.offset())
+                .offset(getCumulativeOffset(chunk.getDocumentId(), chunk.getOrder(), report.offset()))
                 .explanation(report.explanation())
                 .type(MetaphorType.valueOf(report.metaphorType()))
-                .chunkId(chunkId)
+                .chunkId(chunk.getId())
                 .build();
+    }
+
+    // offset returned by LLM is an offset computed in the chunk, but the idea is to store the offset from the beginning
+    // of the whole document
+    int getCumulativeOffset(String documentId, int chunkOrder, int metaphorOffset) {
+        int cumulativeLengthOfChunks = chunkRepository.findCumulativeLengthOfChunks(documentId, chunkOrder);
+        return cumulativeLengthOfChunks + metaphorOffset;
     }
 
     void updateDocumentStatusIfNeeded(IndexedDocument document) {

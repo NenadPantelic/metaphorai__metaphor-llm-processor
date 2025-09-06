@@ -26,4 +26,12 @@ public interface IndexedDocumentChunkRepository extends MongoRepository<IndexedD
 
     @Query(value = "{'status': 'FAILED_TO_PROCESS'}", count = true)
     int countProcessingFailuresByDocumentId(String documentId);
+
+    @Aggregation(pipeline = {
+            "{$match: { {'documentId': ?0, 'order': {$lt: ?1}}}",
+            "{$project: { 'length': { '$size': '$text'}}}",
+            "{$group: {'_id': null, 'totalLength': {'$sum': '$length'}}}"
+    })
+        // untested
+    int findCumulativeLengthOfChunks(String documentId, int order);
 }

@@ -1,10 +1,7 @@
 package ai.metaphor.metaphor_llm_processor.indexing;
 
 import ai.metaphor.metaphor_llm_processor.exception.IndexingException;
-import ai.metaphor.metaphor_llm_processor.model.DocumentStatus;
-import ai.metaphor.metaphor_llm_processor.model.IndexedDocument;
-import ai.metaphor.metaphor_llm_processor.model.IndexedDocumentChunk;
-import ai.metaphor.metaphor_llm_processor.model.OriginType;
+import ai.metaphor.metaphor_llm_processor.model.*;
 import ai.metaphor.metaphor_llm_processor.repository.IndexedDocumentChunkRepository;
 import ai.metaphor.metaphor_llm_processor.repository.IndexedDocumentRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -24,16 +21,16 @@ import java.util.List;
 @Service
 public class DocumentIndexingServiceImpl implements DocumentIndexingService {
 
-    private final ResourceDocumentReader resourceDocumentReader;
+    private final HTMLArticleDocumentReader HTMLArticleDocumentReader;
     private final TextSplitter textSplitter;
     private final IndexedDocumentRepository documentRepository;
     private final IndexedDocumentChunkRepository chunkRepository;
 
-    public DocumentIndexingServiceImpl(ResourceDocumentReader resourceDocumentReader,
+    public DocumentIndexingServiceImpl(HTMLArticleDocumentReader HTMLArticleDocumentReader,
                                        TextSplitter textSplitter,
                                        IndexedDocumentRepository documentRepository,
                                        IndexedDocumentChunkRepository chunkRepository) {
-        this.resourceDocumentReader = resourceDocumentReader;
+        this.HTMLArticleDocumentReader = HTMLArticleDocumentReader;
         this.textSplitter = textSplitter;
         this.documentRepository = documentRepository;
         this.chunkRepository = chunkRepository;
@@ -82,7 +79,7 @@ public class DocumentIndexingServiceImpl implements DocumentIndexingService {
     }
 
     private List<IndexedDocumentChunk> sliceDocumentToChunks(IndexedDocument indexedDocument, Resource resource) {
-        List<Document> processedDocuments = processDocument(resource);
+        List<Document> processedDocuments = processDocument(indexedDocument.getOrigin(), resource);
         int indexOrder = 1;
         List<IndexedDocumentChunk> chunks = new ArrayList<>();
         for (Document document : processedDocuments) {
@@ -97,8 +94,8 @@ public class DocumentIndexingServiceImpl implements DocumentIndexingService {
         return chunkRepository.saveAll(chunks);
     }
 
-    private List<Document> processDocument(Resource resource) {
-        var parsedDocuments = resourceDocumentReader.readFrom(resource);
+    private List<Document> processDocument(String origin, Resource resource) {
+        var parsedDocuments = HTMLArticleDocumentReader.readFrom(origin, resource);
         return textSplitter.split(parsedDocuments);
     }
 }

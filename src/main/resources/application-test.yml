@@ -38,12 +38,12 @@ spring:
 
 metaphor:
   system-prompt: You are a linguist, an expert for metaphor in English.
-  reprocessing-directive: """ I'm not satisfied with how you analyzed this chunk last time. This time, please be sure to:
-   - use the correct word class
-   - consult the selected dictionaries
-   - establish the correct basic sense of words
-   - establish the correct contextual sense of words
-   """
+  reprocessing-directive: |
+  I'm not satisfied with how you analyzed this chunk last time. This time, please be sure to:
+    - use the correct word class
+    - consult the selected dictionaries
+    - establish the correct basic sense of words
+    - establish the correct contextual sense of words
 
 indexing:
   max-retry: 3
