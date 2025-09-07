@@ -10,6 +10,9 @@ class Metaphor:
 
 
 class IndexedDocument:
-    def __init__(self, path: str, metaphors: List[Metaphor]):
+    def __init__(self, name:str, path: str,text:str, metaphors: List[Metaphor]):
+        self.name = name
         self.path = path
+        self.text = text
         self.metaphors = metaphors
+        

@@ -1,5 +1,4 @@
-Please, find all direct/indirect/implicit metaphors in the text below strictly adhering to  MIPVU  (Steen et al. 2010)
-methodology. Please, use the following rules:
+Please, find all direct/indirect/implicit metaphors in the text below strictly adhering to  MIPVU  (Steen et al. 2010) methodology. Please, use the following rules:
 1. Read the entire text/discourse to establish a general understanding of meaning.
 2. Determine the lexical units in the text/discourse (noting exceptions to certain phrasal verbs, conventionalized compounds, and polywords)-.
 3. For each lexical unit in the text, establish its contextual meaning.

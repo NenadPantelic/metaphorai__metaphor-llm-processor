@@ -79,7 +79,7 @@ class MetaphorProcessorTest {
         Mockito.doReturn(processingChunk).when(chunkRepository).save(documentChunk);
 
         var metaphorReportOne = new MetaphorLLMReport(
-                "test-phrase-1", 5, MetaphorType.DIRECT.name() , "test-explanation-1"
+                "test-phrase-1", 5, MetaphorType.DIRECT.name(), "test-explanation-1"
         );
         var metaphorReportTwo = new MetaphorLLMReport(
                 "test-phrase-2", 15, MetaphorType.DIRECT.name(), "test-explanation-2"
@@ -329,7 +329,9 @@ class MetaphorProcessorTest {
 
     @Test
     public void testConvertLLMReportToMetaphorWhenReportIsNull() {
-        Assertions.assertThat(metaphorProcessor.convertLLMReportToMetaphor("chunk-id", null)).isNull();
+        Assertions.assertThat(
+                metaphorProcessor.convertLLMReportToMetaphor(IndexedDocumentChunk.builder().build(), null)
+        ).isNull();
     }
 
     @ParameterizedTest

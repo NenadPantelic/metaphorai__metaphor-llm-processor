@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-public class GuardianArticleFilter implements ArticleTextFilter {
+public class GuardianArticleTextFilter implements ArticleTextFilter {
 
     private static final String START_MARKER = "View image in fullscreen";
     private static final String END_MARKER = "Explore more on these topics";

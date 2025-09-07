@@ -1,7 +1,8 @@
 package ai.metaphor.metaphor_llm_processor.indexing;
 
 import ai.metaphor.metaphor_llm_processor.indexing.filter.ArticleTextFilter;
-import ai.metaphor.metaphor_llm_processor.indexing.filter.GuardianArticleFilter;
+import ai.metaphor.metaphor_llm_processor.indexing.filter.GuardianArticleTextFilter;
+import ai.metaphor.metaphor_llm_processor.indexing.filter.IndependentArticleTextFilter;
 import ai.metaphor.metaphor_llm_processor.model.Origin;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
@@ -18,9 +19,11 @@ public class HTMLArticleDocumentReader {
 
     private final Map<String, ArticleTextFilter> articleTextFilerMap;
 
-    public HTMLArticleDocumentReader(GuardianArticleFilter guardianArticleFilter) {
+    public HTMLArticleDocumentReader(GuardianArticleTextFilter guardianArticleTextFilter,
+                                     IndependentArticleTextFilter independentArticleTextFilter) {
         articleTextFilerMap = Map.of(
-                Origin.GUARDIAN.name().toLowerCase(), guardianArticleFilter
+                Origin.GUARDIAN.name().toLowerCase(), guardianArticleTextFilter,
+                Origin.INDEPENDENT.name().toLowerCase(), independentArticleTextFilter
         );
     }
 

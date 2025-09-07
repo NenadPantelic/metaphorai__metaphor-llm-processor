@@ -28,10 +28,10 @@ public interface IndexedDocumentChunkRepository extends MongoRepository<IndexedD
     int countProcessingFailuresByDocumentId(String documentId);
 
     @Aggregation(pipeline = {
-            "{$match: { {'documentId': ?0, 'order': {$lt: ?1}}}",
-            "{$project: { 'length': { '$size': '$text'}}}",
-            "{$group: {'_id': null, 'totalLength': {'$sum': '$length'}}}"
+            "{$match: { 'documentId': ?0, 'order': {$lt: ?1}}}",
+            "{$project: { 'length': { '$strLenCP': '$text'}}}",
+            "{$group: {'_id': null, 'totalLength': {'$sum': '$length'}}}",
+            "{$project: { 'totalLength': 1, '_id': 0}}"
     })
-        // untested
-    int findCumulativeLengthOfChunks(String documentId, int order);
+    Integer findCumulativeLengthOfPreviousChunks(String documentId, int order);
 }

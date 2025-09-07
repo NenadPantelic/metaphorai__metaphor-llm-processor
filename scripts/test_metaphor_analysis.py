@@ -22,7 +22,7 @@ if __name__ == "__main__":
         print("Going to sleep to give some time to processor to complete the analysis")
         sleep(SLEEP_IN_SECONDS)
 
-        docs = metaphor_db_handler.find_all_metaphors()
+        docs = metaphor_db_handler.find_all_documents()
         for doc in docs:
             file_writer.write_document(doc)
 

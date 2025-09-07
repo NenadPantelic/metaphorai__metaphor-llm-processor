@@ -22,10 +22,10 @@ class MetaphorDBHandler:
             print(f"Authentication failed: {e}")
             raise e
 
-    def find_all_metaphors(self):
+    def find_all_documents(self):
         print("Retrieving all documents...")
         cursor = self._collection.find({})
-        return [self._convert_to_document(metaphor) for metaphor in cursor]
+        return [self._convert_to_document(document) for document in cursor]
 
     def clear_all(self):
         self._collection.delete_many({})
@@ -33,7 +33,9 @@ class MetaphorDBHandler:
 
     def _convert_to_document(self, document_dict: dict) -> IndexedDocument:
         return IndexedDocument(
+            document_dict.get("name"),
             document_dict.get("path"),
+            document_dict.get("text"),
             self._convert_to_metaphors(document_dict.get("metaphors")),
         )
 
